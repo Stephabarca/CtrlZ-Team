@@ -8,6 +8,6 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "Videojuego",
     ) {
-        App()
+        App(onExit = ::exitApplication)
     }
 }

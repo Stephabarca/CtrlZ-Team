@@ -1,0 +1,35 @@
+[
+  {
+    "id": "juntos",
+    "title": "Rescatados juntos",
+    "priority": 3,
+    "text": "Cuando llega el rescate, los cuatro cruzan la playa juntos. Aprendiste a escuchar, a respetar límites y a decir lo que piensas, y eso construyó vínculos que no dependen de nadie más.",
+    "rule": {
+      "minCharactersAbove": 2,
+      "threshold": 70,
+      "noOneBelow": 40
+    }
+  },
+  {
+    "id": "vinculo",
+    "title": "Un vínculo profundo",
+    "priority": 2,
+    "text": "Una de las personas que conociste en la isla se volvió alguien especial. No fue magia: fueron noches de conversación honesta y respeto mutuo.",
+    "rule": {
+      "minCharactersAbove": 1,
+      "threshold": 75,
+      "noOneBelow": 0
+    }
+  },
+  {
+    "id": "solos",
+    "title": "Cada quien su camino",
+    "priority": 1,
+    "text": "El rescate llega y cada uno sigue su rumbo. Quedaron conversaciones a medias, pero aprendiste algo sobre cómo te comunicas y puedes hacerlo distinto la próxima vez.",
+    "rule": {
+      "minCharactersAbove": 0,
+      "threshold": 0,
+      "noOneBelow": 0
+    }
+  }
+]

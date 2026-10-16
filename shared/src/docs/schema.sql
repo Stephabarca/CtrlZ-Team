@@ -1,7 +1,3 @@
--- Modelo relacional de Isla Perdida (SQLite).
--- El contenido hoy vive en JSON y el progreso en un documento JSON; este esquema es el modelo
--- lógico equivalente y puede usarse tal cual con SQLDelight si se decide migrar a SQLite.
-
 PRAGMA foreign_keys = ON;
 
 -- ============ CONTENIDO (solo lectura) ============

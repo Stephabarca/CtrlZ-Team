@@ -8,4 +8,5 @@ enum class Screen(val route: String) {
     Night2("night2"),
     Night3("night3"),
     Settings("settings"),
+    TimerDemo("timer_demo"), // temporal: demo del temporizador (EP-3)
 }

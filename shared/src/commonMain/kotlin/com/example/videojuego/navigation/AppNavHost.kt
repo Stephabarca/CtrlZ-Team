@@ -8,6 +8,7 @@ import com.example.videojuego.resources.*
 import com.example.videojuego.ui.GamePlaceholderScreen
 import com.example.videojuego.ui.MenuScreen
 import com.example.videojuego.ui.SettingsPlaceholderScreen
+import com.example.videojuego.ui.TimerDemoScreen
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -26,6 +27,7 @@ fun AppNavHost(onExit: () -> Unit) {
                 onPlay = { navController.navigate(GameFlow.first().route) },
                 onContinue = { /* Se conectará con el guardado (EP-9) */ },
                 onSettings = { navController.navigate(Screen.Settings.route) },
+                onTimerDemo = { navController.navigate(Screen.TimerDemo.route) },
                 onExit = onExit,
             )
         }
@@ -47,6 +49,10 @@ fun AppNavHost(onExit: () -> Unit) {
         composable(Screen.Settings.route) {
             SettingsPlaceholderScreen(onBack = { navController.popBackStack() })
         }
+
+        composable(Screen.TimerDemo.route) {
+            TimerDemoScreen(onBack = { navController.popBackStack() })
+        }
     }
 }
 
@@ -57,4 +63,5 @@ private fun Screen.titleRes(): StringResource = when (this) {
     Screen.Night2 -> Res.string.screen_night2
     Screen.Night3 -> Res.string.screen_night3
     Screen.Settings -> Res.string.screen_settings
+    Screen.TimerDemo -> Res.string.timer_demo_title
 }

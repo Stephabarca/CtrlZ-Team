@@ -1,0 +1,24 @@
+<resources>
+    <string name="menu_title">La Isla Perdida</string>
+    <string name="menu_play">Jugar</string>
+    <string name="menu_continue">Continuar</string>
+    <string name="menu_settings">Ajustes</string>
+    <string name="menu_exit">Salir</string>
+    <string name="menu_timer_demo">Probar temporizador (temporal)</string>
+    <string name="screen_intro">Introducción</string>
+    <string name="screen_night1">Noche 1</string>
+    <string name="screen_night2">Noche 2</string>
+    <string name="screen_night3">Noche 3</string>
+    <string name="screen_settings">Ajustes</string>
+    <string name="action_next">Siguiente</string>
+    <string name="action_finish">Terminar</string>
+    <string name="action_back">Atrás</string>
+    <string name="dialog_exit_title">¿Volver al menú?</string>
+    <string name="dialog_exit_message">Se perderá el progreso de esta partida.</string>
+    <string name="dialog_confirm">Volver al menú</string>
+    <string name="dialog_cancel">Cancelar</string>
+    <string name="timer_demo_title">Demo del temporizador</string>
+    <string name="timer_remaining">%1$d s</string>
+    <string name="timer_time_up">¡Tiempo agotado!</string>
+    <string name="timer_restart">Reiniciar</string>
+</resources>

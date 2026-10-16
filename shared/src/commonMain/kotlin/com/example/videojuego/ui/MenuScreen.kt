@@ -22,6 +22,7 @@ fun MenuScreen(
     onPlay: () -> Unit,
     onContinue: () -> Unit,
     onSettings: () -> Unit,
+    onTimerDemo: () -> Unit,
     onExit: () -> Unit,
 ) {
     Column(
@@ -40,6 +41,8 @@ fun MenuScreen(
             Text(stringResource(Res.string.menu_continue))
         }
         Button(onClick = onSettings) { Text(stringResource(Res.string.menu_settings)) }
+        // TEMPORAL: quitar cuando exista la pantalla de preguntas.
+        Button(onClick = onTimerDemo) { Text(stringResource(Res.string.menu_timer_demo)) }
         Button(onClick = onExit) { Text(stringResource(Res.string.menu_exit)) }
     }
 }

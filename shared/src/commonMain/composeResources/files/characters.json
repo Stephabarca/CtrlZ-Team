@@ -1,0 +1,49 @@
+[
+  {
+    "id": "valentina",
+    "name": "Valentina Oliva",
+    "age": 23,
+    "occupation": "Estudiante de psicología y trabajadora a medio tiempo en el cine",
+    "accentColor": "#CAD988",
+    "difficulty": "moderada",
+    "learning": "La conexión: escuchar, expresar interés y construir confianza",
+    "summary": "Cálida, optimista, extrovertida y expresiva. Escucha muy bien, pero le cuesta expresar cuándo necesita apoyo.",
+    "boundaries": [
+      "No quiere que sus problemas sean minimizados con frases como 'no es para tanto'",
+      "No desea sentirse responsable de mantener siempre el ánimo del grupo",
+      "Necesita expresar tristeza o frustración sin que corrijan sus emociones de inmediato"
+    ],
+    "pendingLearning": "Comprender que ser empática no significa hacerse responsable de las emociones de todo el mundo"
+  },
+  {
+    "id": "lucas",
+    "name": "Lucas Ámbar",
+    "age": 25,
+    "occupation": "Ingeniero de datos y aficionado al senderismo",
+    "accentColor": "#FEB204",
+    "difficulty": "intermedia",
+    "learning": "La autonomía: respetar límites, gestionar inseguridades y valorar la individualidad",
+    "summary": "Reservado, observador e independiente. Necesita tiempo para confiar, y a veces se distancia tanto que su silencio parece desinterés.",
+    "boundaries": [
+      "No acepta que revisen sus pertenencias o conversaciones privadas sin consentimiento",
+      "Necesita tiempo a solas para recuperar energía",
+      "Quiere compartir su vida sin perder amistades, intereses ni espacios personales"
+    ],
+    "pendingLearning": "Entender que establecer límites y comunicar lo que necesita son responsabilidades compatibles"
+  },
+  {
+    "id": "lila",
+    "name": "Lila Ariza",
+    "age": 26,
+    "occupation": "Profesora de arte y antigua integrante de un equipo de debate",
+    "accentColor": "#AF50E5",
+    "difficulty": "elevada",
+    "learning": "El conflicto: comunicación asertiva, afrontar desacuerdos y detectar comportamientos dañinos",
+    "summary": "Analítica, directa y desconfiada. Valora la honestidad, pero a veces usa la franqueza para opinar sin considerar el impacto.",
+    "boundaries": [
+      "No acepta que le mientan deliberadamente para evitar una conversación incómoda",
+      "Debe respetarse su derecho a disentir"
+    ],
+    "pendingLearning": "Aprender que reconocer un error no elimina su valor personal y que una disculpa sincera requiere cambios, no solo palabras"
+  }
+]

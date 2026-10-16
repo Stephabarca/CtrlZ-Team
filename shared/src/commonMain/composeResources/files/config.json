@@ -1,0 +1,28 @@
+{
+  "startAffinity": 30,
+  "minAffinity": 0,
+  "maxAffinity": 100,
+  "timeoutDelta": -2,
+  "stages": [
+    {
+      "id": "desconocidos",
+      "name": "Desconocidos",
+      "minValue": 0
+    },
+    {
+      "id": "conocidos",
+      "name": "Conocidos",
+      "minValue": 25
+    },
+    {
+      "id": "amistad",
+      "name": "Amistad",
+      "minValue": 50
+    },
+    {
+      "id": "cercania",
+      "name": "Cercanía",
+      "minValue": 75
+    }
+  ]
+}

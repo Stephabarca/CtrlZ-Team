@@ -1,0 +1,137 @@
+[
+  {
+    "id": "reciprocidad",
+    "label": "Reciprocidad",
+    "healthy": true
+  },
+  {
+    "id": "escucha",
+    "label": "Escucha activa",
+    "healthy": true
+  },
+  {
+    "id": "empatia",
+    "label": "Empatía",
+    "healthy": true
+  },
+  {
+    "id": "cuidado",
+    "label": "Cuidado compartido",
+    "healthy": true
+  },
+  {
+    "id": "honestidad",
+    "label": "Honestidad",
+    "healthy": true
+  },
+  {
+    "id": "asertividad",
+    "label": "Comunicación asertiva",
+    "healthy": true
+  },
+  {
+    "id": "comunicacion",
+    "label": "Comunicación clara",
+    "healthy": true
+  },
+  {
+    "id": "realismo",
+    "label": "Expectativas realistas",
+    "healthy": true
+  },
+  {
+    "id": "respeto_espacio",
+    "label": "Respeto al espacio personal",
+    "healthy": true
+  },
+  {
+    "id": "respeto_privacidad",
+    "label": "Respeto a la privacidad",
+    "healthy": true
+  },
+  {
+    "id": "respeto_autonomia",
+    "label": "Respeto a la autonomía",
+    "healthy": true
+  },
+  {
+    "id": "evasion",
+    "label": "Evasión",
+    "healthy": false
+  },
+  {
+    "id": "minimiza",
+    "label": "Minimizar emociones",
+    "healthy": false
+  },
+  {
+    "id": "soluciona",
+    "label": "Resolver sin escuchar",
+    "healthy": false
+  },
+  {
+    "id": "presion",
+    "label": "Presión",
+    "healthy": false
+  },
+  {
+    "id": "culpa",
+    "label": "Culpar",
+    "healthy": false
+  },
+  {
+    "id": "desprecio",
+    "label": "Desprecio",
+    "healthy": false
+  },
+  {
+    "id": "mito_romantico",
+    "label": "Mito del amor romántico",
+    "healthy": false
+  },
+  {
+    "id": "celos",
+    "label": "Celos como prueba de amor",
+    "healthy": false
+  },
+  {
+    "id": "control",
+    "label": "Control",
+    "healthy": false
+  },
+  {
+    "id": "invasion",
+    "label": "Invasión de la privacidad",
+    "healthy": false
+  },
+  {
+    "id": "reproche",
+    "label": "Reproche",
+    "healthy": false
+  },
+  {
+    "id": "exigencia",
+    "label": "Exigencia",
+    "healthy": false
+  },
+  {
+    "id": "chantaje",
+    "label": "Chantaje emocional",
+    "healthy": false
+  },
+  {
+    "id": "agresion",
+    "label": "Agresión verbal",
+    "healthy": false
+  },
+  {
+    "id": "ataque_personal",
+    "label": "Ataque personal",
+    "healthy": false
+  },
+  {
+    "id": "venganza",
+    "label": "Venganza",
+    "healthy": false
+  }
+]

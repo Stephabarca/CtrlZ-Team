@@ -1,0 +1,29 @@
+[
+  {
+    "id": "pesca",
+    "name": "Pesca al amanecer",
+    "characterId": "valentina",
+    "type": "tap_timing",
+    "maxAffinity": 15,
+    "durationSec": 30,
+    "difficulty": "baja"
+  },
+  {
+    "id": "fogata",
+    "name": "Armar la fogata",
+    "characterId": "lucas",
+    "type": "drag_drop",
+    "maxAffinity": 12,
+    "durationSec": 45,
+    "difficulty": "media"
+  },
+  {
+    "id": "memoria",
+    "name": "Memoria de colores",
+    "characterId": "lila",
+    "type": "memory",
+    "maxAffinity": 10,
+    "durationSec": 60,
+    "difficulty": "alta"
+  }
+]

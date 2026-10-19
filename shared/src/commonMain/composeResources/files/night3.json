@@ -1,0 +1,221 @@
+{
+  "id": "night3",
+  "order": 3,
+  "characterId": "lila",
+  "title": "Noche 3: El refugio de Lila",
+  "backgroundId": "bg_refugio",
+  "timeLimitSec": 12,
+  "answerWeight": 1.2,
+  "minigameId": "memoria",
+  "intro": [
+    {
+      "speakerId": "narrator",
+      "text": "Tercera noche. Lila revisa el refugio con mirada atenta. Parece haber notado cada detalle.",
+      "expression": "neutral"
+    },
+    {
+      "speakerId": "lila",
+      "text": "Voy a ser directa: prefiero una conversación incómoda y honesta a una amable y falsa.",
+      "expression": "seria"
+    },
+    {
+      "speakerId": "lila",
+      "text": "Así que dime lo que piensas de verdad. Yo haré lo mismo.",
+      "expression": "seria"
+    }
+  ],
+  "questions": [
+    {
+      "id": "n3q1",
+      "speakerId": "lila",
+      "expression": "seria",
+      "prompt": "Ayer dijiste que mi plan del refugio tenía fallas. ¿Qué opinas realmente?",
+      "answers": [
+        {
+          "id": "n3q1a1",
+          "text": "Creo que el techo puede ceder con el viento. Propongo reforzarlo con estas ramas. ¿Qué te parece?",
+          "affinityDelta": 10,
+          "motive": "asertividad",
+          "feedback": "Diste tu opinión con una propuesta concreta. Eso es comunicación asertiva."
+        },
+        {
+          "id": "n3q1a2",
+          "text": "Tiene buenas ideas, pero me preocupa el techo. ¿Lo revisamos juntos?",
+          "affinityDelta": 5,
+          "motive": "asertividad",
+          "feedback": "Reconociste lo bueno y planteaste tu preocupación."
+        },
+        {
+          "id": "n3q1a3",
+          "text": "No dije eso. Entendiste mal.",
+          "affinityDelta": -5,
+          "motive": "evasion",
+          "feedback": "Negar lo que dijiste evita la conversación. Con Lila, la honestidad pesa más que la comodidad."
+        },
+        {
+          "id": "n3q1a4",
+          "text": "Pues si lo sabes todo, hazlo tú sola.",
+          "affinityDelta": -10,
+          "motive": "agresion",
+          "feedback": "El sarcasmo convierte un desacuerdo en un ataque y cierra el diálogo."
+        }
+      ]
+    },
+    {
+      "id": "n3q2",
+      "speakerId": "lila",
+      "expression": "seria",
+      "prompt": "Creo que deberíamos racionar el agua desde hoy. ¿Estás de acuerdo?",
+      "answers": [
+        {
+          "id": "n3q2a1",
+          "text": "Entiendo tu punto, pero no estoy de acuerdo del todo: busquemos el arroyo antes de racionar.",
+          "affinityDelta": 10,
+          "motive": "asertividad",
+          "feedback": "Desacordaste con respeto y ofreciste otra opción. Ella valora que disientas."
+        },
+        {
+          "id": "n3q2a2",
+          "text": "Tal vez tengas razón. Pero quisiera revisar el arroyo primero.",
+          "affinityDelta": 5,
+          "motive": "comunicacion",
+          "feedback": "Planteaste una duda razonable sin imponerla."
+        },
+        {
+          "id": "n3q2a3",
+          "text": "Sí, claro, lo que tú digas.",
+          "affinityDelta": -5,
+          "motive": "evasion",
+          "feedback": "Un 'sí' falso evita la discusión, pero ella lo detecta y pierde confianza."
+        },
+        {
+          "id": "n3q2a4",
+          "text": "Siempre tienes que imponer lo que piensas.",
+          "affinityDelta": -10,
+          "motive": "ataque_personal",
+          "feedback": "Atacar a la persona, no su idea, empeora el conflicto."
+        }
+      ]
+    },
+    {
+      "id": "n3q3",
+      "speakerId": "lila",
+      "expression": "triste",
+      "prompt": "Ayer me puse muy dura contigo frente a los demás. No estuvo bien, pero no sé cómo disculparme sin que suene a excusa.",
+      "answers": [
+        {
+          "id": "n3q3a1",
+          "text": "Gracias por decirlo. Me ayudaría que lo converses conmigo antes, no frente a todos.",
+          "affinityDelta": 10,
+          "motive": "comunicacion",
+          "feedback": "Aceptaste su disculpa y fijaste un límite claro para el futuro."
+        },
+        {
+          "id": "n3q3a2",
+          "text": "Aprecio que lo reconozcas. Gracias.",
+          "affinityDelta": 5,
+          "motive": "empatia",
+          "feedback": "Reconocer su esfuerzo ayuda. Faltó decir cómo te afectó."
+        },
+        {
+          "id": "n3q3a3",
+          "text": "No pasa nada, olvidémoslo.",
+          "affinityDelta": -5,
+          "motive": "evasion",
+          "feedback": "Pasar de largo deja el límite sin decir y el problema pendiente."
+        },
+        {
+          "id": "n3q3a4",
+          "text": "Pues claro que estuvo mal. Ahora me debes una disculpa pública.",
+          "affinityDelta": -10,
+          "motive": "venganza",
+          "feedback": "Humillarla a cambio es venganza, no reparación."
+        }
+      ]
+    },
+    {
+      "id": "n3q4",
+      "speakerId": "lila",
+      "expression": "neutral",
+      "prompt": "Mi familia cree que debería dedicarme a algo mejor que dar clases. ¿Tú qué piensas?",
+      "answers": [
+        {
+          "id": "n3q4a1",
+          "text": "Pienso que lo importante es lo que te hace sentir bien a ti. Me contaste que ahí encuentras paz.",
+          "affinityDelta": 10,
+          "motive": "respeto_autonomia",
+          "feedback": "Respetaste su decisión y recordaste lo que ella valora de su trabajo."
+        },
+        {
+          "id": "n3q4a2",
+          "text": "No conozco toda tu situación. ¿Qué es lo que tú quieres?",
+          "affinityDelta": 5,
+          "motive": "escucha",
+          "feedback": "Preguntar qué quiere ella le devuelve la decisión."
+        },
+        {
+          "id": "n3q4a3",
+          "text": "Quizá tengan razón. Con tu talento podrías ganar más.",
+          "affinityDelta": -5,
+          "motive": "presion",
+          "feedback": "Empujarla hacia lo que dice su familia es presión, aunque suene bien intencionado."
+        },
+        {
+          "id": "n3q4a4",
+          "text": "Eres demasiado terca para escuchar a tu familia.",
+          "affinityDelta": -10,
+          "motive": "ataque_personal",
+          "feedback": "Llamarla terca la ataca como persona y no ayuda a resolver nada."
+        }
+      ]
+    },
+    {
+      "id": "n3q5",
+      "speakerId": "lila",
+      "expression": "seria",
+      "prompt": "Si algo que hago te incomoda, ¿me lo dirías o preferirías evitarlo?",
+      "answers": [
+        {
+          "id": "n3q5a1",
+          "text": "Te lo diría con calma y sin atacarte, porque quiero que nos entendamos. Y espero lo mismo de ti.",
+          "affinityDelta": 10,
+          "motive": "asertividad",
+          "feedback": "Dijiste que hablarías con calma y esperas reciprocidad. Es justo lo que busca."
+        },
+        {
+          "id": "n3q5a2",
+          "text": "Te lo diría, aunque a veces me cuesta.",
+          "affinityDelta": 5,
+          "motive": "honestidad",
+          "feedback": "Admitiste que cuesta. Ser honesto sobre eso ya es un paso."
+        },
+        {
+          "id": "n3q5a3",
+          "text": "Prefiero no discutir, así que lo dejaría pasar.",
+          "affinityDelta": -5,
+          "motive": "evasion",
+          "feedback": "Evitar el desacuerdo deja los problemas sin resolver y ella lo nota."
+        },
+        {
+          "id": "n3q5a4",
+          "text": "Te lo diría al instante y sin filtros. Así eres tú, ¿no?",
+          "affinityDelta": -10,
+          "motive": "agresion",
+          "feedback": "Decirlo sin filtros puede dañar. Ser directo no justifica ser hiriente."
+        }
+      ]
+    }
+  ],
+  "outro": [
+    {
+      "speakerId": "lila",
+      "text": "Hablar contigo fue más difícil de lo que pensaba... y mejor de lo que esperaba.",
+      "expression": "sonriendo"
+    },
+    {
+      "speakerId": "narrator",
+      "text": "Tres noches pasaron. Al amanecer, un sonido lejano en el cielo lo cambia todo.",
+      "expression": "neutral"
+    }
+  ]
+}

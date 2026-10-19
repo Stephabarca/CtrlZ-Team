@@ -1,0 +1,221 @@
+{
+  "id": "night2",
+  "order": 2,
+  "characterId": "lucas",
+  "title": "Noche 2: El sendero de Lucas",
+  "backgroundId": "bg_campamento_bosque",
+  "timeLimitSec": 15,
+  "answerWeight": 1.0,
+  "minigameId": "fogata",
+  "intro": [
+    {
+      "speakerId": "narrator",
+      "text": "Segunda noche. Lucas está sentado un poco aparte, con un mapa que dibujó en la arena.",
+      "expression": "neutral"
+    },
+    {
+      "speakerId": "lucas",
+      "text": "Hola. Si quieres, siéntate. No hace falta llenar el silencio.",
+      "expression": "neutral"
+    },
+    {
+      "speakerId": "lucas",
+      "text": "Revisé el sendero del norte hoy. Hay un arroyo que baja hacia la costa.",
+      "expression": "neutral"
+    }
+  ],
+  "questions": [
+    {
+      "id": "n2q1",
+      "speakerId": "lucas",
+      "expression": "neutral",
+      "prompt": "Mañana quiero revisar el sendero otra vez. Prefiero ir solo un rato. ¿Te molesta?",
+      "answers": [
+        {
+          "id": "n2q1a1",
+          "text": "Para nada. Ve tranquilo, aquí estaré cuando vuelvas.",
+          "affinityDelta": 10,
+          "motive": "respeto_espacio",
+          "feedback": "Respetaste su espacio sin pedir explicaciones. Eso construye confianza con Lucas."
+        },
+        {
+          "id": "n2q1a2",
+          "text": "Está bien. Si otro día quieres compañía, me avisas.",
+          "affinityDelta": 5,
+          "motive": "respeto_espacio",
+          "feedback": "Aceptaste su necesidad y dejaste la puerta abierta, sin presionar."
+        },
+        {
+          "id": "n2q1a3",
+          "text": "¿Por qué siempre te vas solo? ¿Hice algo mal?",
+          "affinityDelta": -5,
+          "motive": "presion",
+          "feedback": "Preguntar si hiciste algo mal le pone una carga que no pidió. Su silencio no es un reproche."
+        },
+        {
+          "id": "n2q1a4",
+          "text": "Voy contigo, no me gusta que andes solo por ahí.",
+          "affinityDelta": -10,
+          "motive": "control",
+          "feedback": "Querer acompañarlo para vigilarlo es control. Su independencia no es desconfianza."
+        }
+      ]
+    },
+    {
+      "id": "n2q2",
+      "speakerId": "lucas",
+      "expression": "triste",
+      "prompt": "Perdona por irme ayer sin decirte nada. Me cuesta explicar cuando algo me incomoda.",
+      "answers": [
+        {
+          "id": "n2q2a1",
+          "text": "Gracias por decírmelo. Si pasa de nuevo, con un 'necesito un momento' me basta.",
+          "affinityDelta": 10,
+          "motive": "comunicacion",
+          "feedback": "Le diste una forma sencilla de avisar. Pactar señales evita malentendidos."
+        },
+        {
+          "id": "n2q2a2",
+          "text": "No pasa nada. Solo avísame la próxima vez.",
+          "affinityDelta": 5,
+          "motive": "comunicacion",
+          "feedback": "Pedir un aviso es razonable. Podrías decir también qué necesitas tú."
+        },
+        {
+          "id": "n2q2a3",
+          "text": "Me sentí ignorado. No lo vuelvas a hacer.",
+          "affinityDelta": -5,
+          "motive": "reproche",
+          "feedback": "Un reproche lo pone a la defensiva y no resuelve nada."
+        },
+        {
+          "id": "n2q2a4",
+          "text": "Pues me debes una explicación completa ahora mismo.",
+          "affinityDelta": -10,
+          "motive": "exigencia",
+          "feedback": "Exigir explicaciones inmediatas presiona. Respetar su ritmo ayuda más."
+        }
+      ]
+    },
+    {
+      "id": "n2q3",
+      "speakerId": "lucas",
+      "expression": "neutral",
+      "prompt": "Dejé mi libreta junto a la fogata. Tiene notas personales. ¿Podrías cuidarla un momento?",
+      "answers": [
+        {
+          "id": "n2q3a1",
+          "text": "Claro. La dejo cerrada y no la toco. Cuando vuelvas te la devuelvo.",
+          "affinityDelta": 10,
+          "motive": "respeto_privacidad",
+          "feedback": "Le dejaste claro que no violarías su privacidad. Eso es respeto."
+        },
+        {
+          "id": "n2q3a2",
+          "text": "Sí, la guardo aquí.",
+          "affinityDelta": 5,
+          "motive": "respeto_privacidad",
+          "feedback": "Cuidaste la libreta sin invadirla."
+        },
+        {
+          "id": "n2q3a3",
+          "text": "Seguro tiene cosas interesantes. ¿Puedo echarle un vistazo?",
+          "affinityDelta": -5,
+          "motive": "invasion",
+          "feedback": "Pedir leer algo privado cruza un límite aunque sea por curiosidad."
+        },
+        {
+          "id": "n2q3a4",
+          "text": "Si no me dejas leerla, es porque escondes algo.",
+          "affinityDelta": -10,
+          "motive": "control",
+          "feedback": "Asumir que esconde algo por poner un límite es desconfianza. Tener privacidad no es mentir."
+        }
+      ]
+    },
+    {
+      "id": "n2q4",
+      "speakerId": "lucas",
+      "expression": "triste",
+      "prompt": "Me preocupa no encajar con mi equipo de trabajo. No es algo que cuente a menudo.",
+      "answers": [
+        {
+          "id": "n2q4a1",
+          "text": "Gracias por confiármelo. ¿Quieres hablar de eso o prefieres que solo te acompañe?",
+          "affinityDelta": 10,
+          "motive": "empatia",
+          "feedback": "Le agradeciste su confianza y le diste opciones, sin forzarlo a hablar."
+        },
+        {
+          "id": "n2q4a2",
+          "text": "Suena difícil. Estoy aquí si quieres seguir contándome.",
+          "affinityDelta": 5,
+          "motive": "escucha",
+          "feedback": "Mostraste disponibilidad sin empujarlo a abrirse."
+        },
+        {
+          "id": "n2q4a3",
+          "text": "Seguro lo estás exagerando. Mejor cambia de actitud con tu equipo.",
+          "affinityDelta": -5,
+          "motive": "minimiza",
+          "feedback": "Minimizar su preocupación y decirle cómo actuar le quita su voz."
+        },
+        {
+          "id": "n2q4a4",
+          "text": "Eso te pasa por no hablar con nadie.",
+          "affinityDelta": -10,
+          "motive": "culpa",
+          "feedback": "Culparlo por su preocupación es humillante. Nadie merece eso al pedir apoyo."
+        }
+      ]
+    },
+    {
+      "id": "n2q5",
+      "speakerId": "lucas",
+      "expression": "sonriendo",
+      "prompt": "Me gusta pasar tiempo contigo, pero también necesito horas a solas para recargarme. ¿Eso está bien?",
+      "answers": [
+        {
+          "id": "n2q5a1",
+          "text": "Está perfecto. Yo también tengo cosas mías, y cada uno puede tener su espacio.",
+          "affinityDelta": 10,
+          "motive": "respeto_autonomia",
+          "feedback": "La cercanía y la individualidad pueden convivir. Eso es una relación sana."
+        },
+        {
+          "id": "n2q5a2",
+          "text": "Sí, mientras sepa que no es por mí.",
+          "affinityDelta": 5,
+          "motive": "honestidad",
+          "feedback": "Aceptaste su espacio, aunque convendría confiar en que no es algo en tu contra."
+        },
+        {
+          "id": "n2q5a3",
+          "text": "Prefiero que pasemos todo el tiempo juntos, así nos conocemos más rápido.",
+          "affinityDelta": -5,
+          "motive": "presion",
+          "feedback": "Presionar por más tiempo juntos ignora lo que él necesita."
+        },
+        {
+          "id": "n2q5a4",
+          "text": "Si necesitas tanto tiempo solo, quizá no te importo tanto.",
+          "affinityDelta": -10,
+          "motive": "chantaje",
+          "feedback": "Chantajear con dudas sobre su cariño es manipulación. Usar el afecto como arma daña."
+        }
+      ]
+    }
+  ],
+  "outro": [
+    {
+      "speakerId": "lucas",
+      "text": "Armar la fogata contigo fue tranquilo. Me gusta cuando no hay que explicar todo.",
+      "expression": "sonriendo"
+    },
+    {
+      "speakerId": "narrator",
+      "text": "El humo sube despacio. Por esta noche, nadie necesita decir más.",
+      "expression": "neutral"
+    }
+  ]
+}

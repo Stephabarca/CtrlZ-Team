@@ -6,6 +6,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.videojuego.data.GameServices
 import com.example.videojuego.data.content.ContentValidator
 import com.example.videojuego.ui.intro.IntroScreen
+import com.example.videojuego.narrative.IntroScript
+import com.example.videojuego.ui.components.DialogueEngineView
+import com.example.videojuego.ui.theme.IslaPerdidaTheme
+import com.example.videojuego.ui.demo.DialogueEngineDemo
 import com.example.videojuego.ui.theme.IslaPerdidaTheme
 
 @Composable
@@ -18,5 +22,6 @@ fun App() {
     }
     IslaPerdidaTheme {
         IntroScreen(onFinished = { })
+        //DialogueEngineDemo()
     }
 }

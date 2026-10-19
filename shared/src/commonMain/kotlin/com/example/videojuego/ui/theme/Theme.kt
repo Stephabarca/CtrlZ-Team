@@ -6,6 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import com.example.videojuego.narrative.Speaker
+import org.jetbrains.compose.resources.Font
+import videojuego.shared.generated.resources.Res
+import videojuego.shared.generated.resources.pixelify_sans
+
 
 /** Paleta definida en el diseño de Isla Perdida. */
 object IslaColors {
@@ -21,8 +25,10 @@ object IslaColors {
     val OnDark = Color(0xFFFFFFFF)
 }
 
-/** Fuente pixelada pendiente de definir. Cambiarla solo aquí cuando se decida. */
-val PixelFontFamily: FontFamily = FontFamily.Monospace
+/** Fuente pixelada oficial del juego. */
+val PixelFontFamily: FontFamily
+    @Composable
+    get() = FontFamily(Font(Res.font.pixelify_sans))
 
 fun Speaker.accent(): Color = when (this) {
     Speaker.NARRATOR -> IslaColors.Primary

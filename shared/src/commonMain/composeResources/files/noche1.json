@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "escenaInicial": "n1_llegada",
+  "personajes": [
+    {
+      "id": "valentina",
+      "nombre": "Valentina Oliva",
+      "descripcion": "Estudiante de psicología de 23 años. Cálida, optimista y expresiva; escucha muy bien, pero le cuesta decir cuándo necesita apoyo. Dificultad moderada (la más baja del reparto).",
+      "sprite": "valentina_normal"
+    }
+  ],
+  "escenas": [
+    {
+      "id": "n1_llegada",
+      "fondo": "playa_atardecer",
+      "lineas": [
+        {
+          "id": "n1_llegada_1",
+          "personajeId": null,
+          "texto": "El oleaje te deja sobre la arena. Tienes la ropa empapada y el cuerpo adolorido, pero estás vivo."
+        },
+        {
+          "id": "n1_llegada_2",
+          "personajeId": null,
+          "texto": "A lo lejos, entre los restos del avión, se mueve una silueta. Alguien más sobrevivió."
+        }
+      ],
+      "siguienteEscenaId": "n1_encuentro"
+    },
+    {
+      "id": "n1_encuentro",
+      "fondo": "playa_restos",
+      "lineas": [
+        {
+          "id": "n1_encuentro_1",
+          "personajeId": "valentina",
+          "texto": "¡Hola! ¡Qué alivio verte! Soy Valentina. ¿Estás bien? ¿Te duele algo?"
+        },
+        {
+          "id": "n1_encuentro_2",
+          "personajeId": "valentina",
+          "texto": "Salí del agua hace un rato y ya estaba hablando sola. Hasta pensé que esto era una película y que alguien gritaría «corte»."
+        },
+        {
+          "id": "n1_encuentro_3",
+          "personajeId": null,
+          "texto": "Valentina sonríe y habla rápido, pero le tiemblan un poco las manos."
+        }
+      ],
+      "siguienteEscenaId": "n1_decision"
+    },
+    {
+      "id": "n1_decision",
+      "fondo": "playa_restos",
+      "lineas": [
+        {
+          "id": "n1_decision_1",
+          "personajeId": "valentina",
+          "texto": "Antes de que anochezca necesitamos dos cosas: fuego y agua potable. Yo puedo ayudar con lo que sea. ¿Por dónde empezamos?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "n1_decision_fuego",
+          "texto": "Encender una fogata en la playa.",
+          "siguienteEscenaId": "n1_fogata",
+          "afinidad": {
+            "valentina": 1
+          }
+        },
+        {
+          "id": "n1_decision_agua",
+          "texto": "Buscar agua dulce tierra adentro.",
+          "siguienteEscenaId": "n1_agua",
+          "afinidad": {
+            "valentina": 1
+          }
+        },
+        {
+          "id": "n1_decision_preguntar",
+          "texto": "Preguntarle primero cómo se siente ella.",
+          "siguienteEscenaId": "n1_pregunta",
+          "afinidad": {
+            "valentina": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "n1_fogata",
+      "fondo": "playa_noche",
+      "lineas": [
+        {
+          "id": "n1_fogata_1",
+          "personajeId": null,
+          "texto": "Juntan ramas secas y piedras. Después de varios intentos, una chispa prende la yesca."
+        },
+        {
+          "id": "n1_fogata_2",
+          "personajeId": "valentina",
+          "texto": "¡Lo logramos! Gracias por quedarte. Creo que, si estuviera sola, ya me habría puesto a organizar a todo el mundo para no pensar."
+        }
+      ],
+      "siguienteEscenaId": "n1_fogata_reaccion"
+    },
+    {
+      "id": "n1_fogata_reaccion",
+      "fondo": "fogata",
+      "lineas": [
+        {
+          "id": "n1_fogata_reaccion_1",
+          "personajeId": "valentina",
+          "texto": "No te preocupes por mí, estoy bien. Yo me encargo de mantener el fuego toda la noche, soy buena en eso."
+        },
+        {
+          "id": "n1_fogata_reaccion_2",
+          "personajeId": null,
+          "texto": "Se nota que está agotada. Apenas puede mantener los ojos abiertos."
+        }
+      ],
+      "opciones": [
+        {
+          "id": "n1_fogata_reaccion_turnos",
+          "texto": "Proponer turnos para que las dos puedan descansar.",
+          "siguienteEscenaId": "n1_atardecer",
+          "afinidad": {
+            "valentina": 2
+          }
+        },
+        {
+          "id": "n1_fogata_reaccion_aceptar",
+          "texto": "Aceptar: ella es la fuerte del grupo y se le da bien.",
+          "siguienteEscenaId": "n1_atardecer",
+          "afinidad": {
+            "valentina": -1
+          }
+        }
+      ]
+    },
+    {
+      "id": "n1_agua",
+      "fondo": "selva_arroyo",
+      "lineas": [
+        {
+          "id": "n1_agua_1",
+          "personajeId": null,
+          "texto": "Siguen un sendero entre palmeras hasta que escuchan el sonido de un arroyo."
+        },
+        {
+          "id": "n1_agua_2",
+          "personajeId": "valentina",
+          "texto": "¡Mira, agua corriente! Es mejor que el agua estancada. Hay que hervirla antes de beberla, pero es un gran comienzo."
+        }
+      ],
+      "siguienteEscenaId": "n1_agua_reaccion"
+    },
+    {
+      "id": "n1_agua_reaccion",
+      "fondo": "selva_arroyo",
+      "lineas": [
+        {
+          "id": "n1_agua_reaccion_1",
+          "personajeId": "valentina",
+          "texto": "Me da un poco de miedo alejarnos tanto de la playa, pero seguro que es una tontería mía."
+        }
+      ],
+      "opciones": [
+        {
+          "id": "n1_agua_reaccion_volver",
+          "texto": "Decirle que su miedo es válido y volver juntos a la playa.",
+          "siguienteEscenaId": "n1_atardecer",
+          "afinidad": {
+            "valentina": 2
+          }
+        },
+        {
+          "id": "n1_agua_reaccion_explorar",
+          "texto": "Proponer explorar un poco más, solo si ella se siente cómoda.",
+          "siguienteEscenaId": "n1_atardecer",
+          "afinidad": {
+            "valentina": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "n1_pregunta",
+      "fondo": "playa_restos",
+      "lineas": [
+        {
+          "id": "n1_pregunta_1",
+          "personajeId": "valentina",
+          "texto": "Vaya, nadie me lo había preguntado en mucho tiempo. Casi siempre soy yo quien pregunta a los demás."
+        },
+        {
+          "id": "n1_pregunta_2",
+          "personajeId": "valentina",
+          "texto": "Estoy asustada y cansada, pero no quiero que eso nos frene. ¿Podemos empezar por el fuego y hablar mientras trabajamos?"
+        },
+        {
+          "id": "n1_pregunta_3",
+          "personajeId": null,
+          "texto": "Valentina sonríe aliviada. Se reparten las tareas y se reúnen de nuevo cuando oscurece."
+        }
+      ],
+      "siguienteEscenaId": "n1_atardecer"
+    },
+    {
+      "id": "n1_atardecer",
+      "fondo": "playa_noche",
+      "lineas": [
+        {
+          "id": "n1_atardecer_1",
+          "personajeId": null,
+          "texto": "El cielo se vuelve naranja y luego morado. Se sientan en la arena, cansados."
+        },
+        {
+          "id": "n1_atardecer_2",
+          "personajeId": "valentina",
+          "texto": "¿Sabes qué es lo más raro? Hace un día teníamos planes, trabajo, gente esperándonos. Y ahora lo único que importa es que estemos bien."
+        }
+      ],
+      "siguienteEscenaId": "n1_guardias"
+    },
+    {
+      "id": "n1_guardias",
+      "fondo": "playa_noche",
+      "lineas": [
+        {
+          "id": "n1_guardias_1",
+          "personajeId": "valentina",
+          "texto": "En mi familia siempre decíamos que había que mantener el ánimo, pero hoy no puedo más. Tengo miedo y quiero llorar un rato."
+        },
+        {
+          "id": "n1_guardias_2",
+          "personajeId": null,
+          "texto": "Valentina baja la mirada y espera tu respuesta."
+        }
+      ],
+      "opciones": [
+        {
+          "id": "n1_guardias_escuchar",
+          "texto": "Quedarte a su lado y decirle que puede llorar, que la escuchas.",
+          "siguienteEscenaId": "n1_final_cercano",
+          "afinidad": {
+            "valentina": 3
+          }
+        },
+        {
+          "id": "n1_guardias_minimizar",
+          "texto": "Decirle que no es para tanto y que mejor piense en cosas buenas.",
+          "siguienteEscenaId": "n1_final_neutro",
+          "afinidad": {
+            "valentina": -1
+          }
+        }
+      ]
+    },
+    {
+      "id": "n1_final_cercano",
+      "fondo": "fogata",
+      "lineas": [
+        {
+          "id": "n1_final_cercano_1",
+          "personajeId": "valentina",
+          "texto": "Gracias por escucharme sin intentar arreglarlo todo. Hacía mucho que no me permitía estar triste delante de alguien."
+        },
+        {
+          "id": "n1_final_cercano_2",
+          "personajeId": "valentina",
+          "texto": "Mañana exploraremos la isla. Pero esta noche descansemos, y mañana lo veremos juntos."
+        },
+        {
+          "id": "n1_final_cercano_3",
+          "personajeId": null,
+          "texto": "Fin de la Noche 1. Has ganado la confianza de Valentina."
+        }
+      ]
+    },
+    {
+      "id": "n1_final_neutro",
+      "fondo": "fogata",
+      "lineas": [
+        {
+          "id": "n1_final_neutro_1",
+          "personajeId": "valentina",
+          "texto": "Tienes razón, mejor pensemos en cosas buenas. Seguro que mañana estaré mejor."
+        },
+        {
+          "id": "n1_final_neutro_2",
+          "personajeId": "valentina",
+          "texto": "Mañana será otro día. Buenas noches."
+        },
+        {
+          "id": "n1_final_neutro_3",
+          "personajeId": null,
+          "texto": "Fin de la Noche 1. Valentina vuelve a sonreír, pero la sonrisa no le llega a los ojos. Quizá mañana puedas escucharla de verdad."
+        }
+      ]
+    }
+  ]
+}

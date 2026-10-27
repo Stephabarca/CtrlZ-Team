@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "historia.schema.json",
+  "title": "Historia de La Isla Perdida",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "escenaInicial", "personajes", "escenas"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "escenaInicial": { "type": "string", "minLength": 1 },
+    "personajes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "nombre"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "nombre": { "type": "string", "minLength": 1 },
+          "descripcion": { "type": "string" },
+          "sprite": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "escenas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "lineas"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "fondo": { "type": ["string", "null"] },
+          "siguienteEscenaId": { "type": ["string", "null"] },
+          "lineas": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "texto"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "personajeId": { "type": ["string", "null"] },
+                "texto": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
+          "opciones": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "texto", "siguienteEscenaId"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "texto": { "type": "string", "minLength": 1 },
+                "siguienteEscenaId": { "type": "string", "minLength": 1 },
+                "afinidad": {
+                  "type": "object",
+                  "additionalProperties": { "type": "integer" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

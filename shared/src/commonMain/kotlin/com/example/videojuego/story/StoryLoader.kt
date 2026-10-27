@@ -25,6 +25,20 @@ object StoryLoader {
         CargaHistoria.Error("JSON inválido o con campos faltantes: ${e.message}", e)
     }
 
+    /**
+     * Igual que [cargar], pero además aplica [StoryValidator] (EP-6).
+     * Si hay algún problema narrativo, la historia NO se integra.
+     */
+    fun cargarValidada(texto: String, minRamas: Int = 2): CargaHistoria =
+        when (val r = cargar(texto)) {
+            is CargaHistoria.Error -> r
+            is CargaHistoria.Exito -> {
+                val errores = StoryValidator.validar(r.historia, minRamas)
+                if (errores.isEmpty()) r
+                else CargaHistoria.Error("La historia no valida: " + errores.joinToString("; "))
+            }
+        }
+
     private fun validar(h: Historia): String? {
         val escenas = h.escenas.map { it.id }.toSet()
         val personajes = h.personajes.map { it.id }.toSet()

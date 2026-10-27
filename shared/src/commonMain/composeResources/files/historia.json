@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "escenaInicial": "intro_01",
+  "personajes": [
+    { "id": "mara", "nombre": "Mara", "descripcion": "Bióloga marina", "sprite": "mara_neutral" }
+  ],
+  "escenas": [
+    {
+      "id": "intro_01",
+      "fondo": "playa_dia",
+      "lineas": [
+        { "id": "intro_01_l1", "texto": "El oleaje te despierta en una playa desconocida." },
+        { "id": "intro_01_l2", "personajeId": "mara", "texto": "¡Por fin despiertas! ¿Estás bien?" }
+      ],
+      "opciones": [
+        {
+          "id": "intro_01_o1",
+          "texto": "Sí, gracias por ayudarme.",
+          "siguienteEscenaId": "intro_02",
+          "afinidad": { "mara": 5 }
+        }
+      ]
+    },
+    {
+      "id": "intro_02",
+      "lineas": [
+        { "id": "intro_02_l1", "personajeId": "mara", "texto": "Vamos, hay que encontrar refugio." }
+      ]
+    }
+  ]
+}

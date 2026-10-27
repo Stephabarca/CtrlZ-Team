@@ -1,0 +1,30 @@
+<resources>
+    <string name="menu_title">La Isla Perdida</string>
+    <string name="menu_play">Jugar</string>
+    <string name="menu_continue">Continuar</string>
+    <string name="menu_settings">Ajustes</string>
+    <string name="menu_exit">Salir</string>
+    <string name="menu_answers_demo">Probar historial de respuestas (temporal)</string>
+    <string name="screen_intro">Introducción</string>
+    <string name="screen_night1">Noche 1</string>
+    <string name="screen_night2">Noche 2</string>
+    <string name="screen_night3">Noche 3</string>
+    <string name="screen_settings">Ajustes</string>
+    <string name="action_next">Siguiente</string>
+    <string name="action_finish">Terminar</string>
+    <string name="action_back">Atrás</string>
+    <string name="dialog_exit_title">¿Volver al menú?</string>
+    <string name="dialog_exit_message">Se perderá el progreso de esta partida.</string>
+    <string name="dialog_confirm">Volver al menú</string>
+    <string name="dialog_cancel">Cancelar</string>
+    <string name="answers_demo_title">Demo del historial</string>
+    <string name="question_progress">Pregunta %1$d de %2$d</string>
+    <string name="answers_time_limit">Tiempo límite: %1$d s (simulado)</string>
+    <string name="answers_simulate_timeout">Simular tiempo agotado</string>
+    <string name="round_finished">Ronda terminada</string>
+    <string name="round_restart">Repetir ronda</string>
+    <string name="history_title">Historial de respuestas</string>
+    <string name="history_empty">Aún no hay respuestas</string>
+    <string name="history_row_answered">%1$s → %2$s · %3$s s · %4$s</string>
+    <string name="history_row_no_answer">%1$s → sin respuesta · %2$s s</string>
+</resources>

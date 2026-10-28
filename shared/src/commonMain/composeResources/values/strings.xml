@@ -27,4 +27,6 @@
     <string name="history_empty">Aún no hay respuestas</string>
     <string name="history_row_answered">%1$s → %2$s · %3$s s · %4$s</string>
     <string name="history_row_no_answer">%1$s → sin respuesta · %2$s s</string>
+    <string name="story_loading">Cargando la historia…</string>
+    <string name="story_error">No se pudo cargar la Noche 1</string>
 </resources>

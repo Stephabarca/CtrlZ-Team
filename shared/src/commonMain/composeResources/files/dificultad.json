@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "porDefecto": {
+    "tiempoSegundos": 20,
+    "numeroPreguntas": 5,
+    "peso": 1
+  },
+  "personajes": {
+    "valentina": { "tiempoSegundos": 25, "numeroPreguntas": 4, "peso": 1 },
+    "lucas": { "tiempoSegundos": 20, "numeroPreguntas": 5, "peso": 2 },
+    "lila": { "tiempoSegundos": 15, "numeroPreguntas": 6, "peso": 3 }
+  }
+}

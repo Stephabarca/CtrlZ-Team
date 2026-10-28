@@ -9,6 +9,8 @@ import com.example.videojuego.ui.AnswerHistoryDemoScreen
 import com.example.videojuego.ui.GamePlaceholderScreen
 import com.example.videojuego.ui.MenuScreen
 import com.example.videojuego.ui.SettingsPlaceholderScreen
+import com.example.videojuego.ui.intro.IntroScreen
+import com.example.videojuego.ui.story.StoryScreen
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -35,14 +37,17 @@ fun AppNavHost(onExit: () -> Unit) {
         GameFlow.sequence.forEach { screen ->
             composable(screen.route) {
                 val next = GameFlow.next(screen)
-                GamePlaceholderScreen(
-                    title = stringResource(screen.titleRes()),
-                    isLast = next == null,
-                    onNext = {
-                        if (next != null) navController.navigate(next.route) else goToMenu()
-                    },
-                    onBackConfirmed = ::goToMenu,
-                )
+                val goNext = { if (next != null) navController.navigate(next.route) else goToMenu() }
+                when (screen) {
+                    Screen.Intro -> IntroScreen(onFinished = { goNext() })
+                    Screen.Night1 -> StoryScreen(onFinished = goNext, onBackConfirmed = ::goToMenu)
+                    else -> GamePlaceholderScreen(
+                        title = stringResource(screen.titleRes()),
+                        isLast = next == null,
+                        onNext = goNext,
+                        onBackConfirmed = ::goToMenu,
+                    )
+                }
             }
         }
 

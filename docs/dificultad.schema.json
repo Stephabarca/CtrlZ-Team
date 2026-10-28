@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dificultad.schema.json",
+  "title": "Parámetros de dificultad por personaje",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "porDefecto": { "$ref": "#/$defs/parametros" },
+    "personajes": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/parametros" }
+    }
+  },
+  "$defs": {
+    "parametros": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tiempoSegundos": { "type": "integer", "minimum": 1 },
+        "numeroPreguntas": { "type": "integer", "minimum": 1 },
+        "peso": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

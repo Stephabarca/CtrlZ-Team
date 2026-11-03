@@ -46,6 +46,11 @@ import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 import com.example.videojuego.ui.theme.accent
 import com.example.videojuego.ui.theme.onAccent
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.painter.Painter
+import org.jetbrains.compose.resources.painterResource
+import videojuego.shared.generated.resources.Res
+import videojuego.shared.generated.resources.*
 import kotlinx.coroutines.delay
 
 /**
@@ -86,6 +91,10 @@ fun IntroScreen(
         }
     }
 
+    val valentinaPainter = painterResource(Res.drawable.valentina_oliva_1)
+    val lucasPainter = painterResource(Res.drawable.lucas_ambar_1)
+    val lilaPainter = painterResource(Res.drawable.lila_ariza_1)
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -116,7 +125,9 @@ fun IntroScreen(
             }
 
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                if (line.speaker != Speaker.NARRATOR) SpritePlaceholder(line.speaker)
+                if (line.speaker != Speaker.NARRATOR) {
+                    SpriteDisplay(line.speaker, valentinaPainter, lucasPainter, lilaPainter)
+                }
                 if (line.hint != TutorialHint.NONE) TutorialHintView(line.hint)
             }
 
@@ -132,23 +143,41 @@ fun IntroScreen(
     }
 }
 
-/** Sprite provisional hasta tener el arte de los personajes (IP-33). */
 @Composable
-private fun SpritePlaceholder(speaker: Speaker) {
-    Box(
-        modifier = Modifier
-            .size(width = 150.dp, height = 230.dp)
-            .border(3.dp, IslaColors.Ink, RectangleShape)
-            .background(speaker.accent(), RectangleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = speaker.displayName.uppercase(),
-            color = speaker.onAccent(),
-            fontFamily = PixelFontFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
+private fun SpriteDisplay(
+    speaker: Speaker,
+    valentinaPainter: Painter,
+    lucasPainter: Painter,
+    lilaPainter: Painter,
+) {
+    val painter = when (speaker) {
+        Speaker.VALENTINA -> valentinaPainter
+        Speaker.LUCAS -> lucasPainter
+        Speaker.LILA -> lilaPainter
+        else -> null
+    }
+    if (painter != null) {
+        Image(
+            painter = painter,
+            contentDescription = speaker.displayName,
+            modifier = Modifier.size(width = 180.dp, height = 260.dp),
         )
+    } else {
+        Box(
+            modifier = Modifier
+                .size(width = 150.dp, height = 230.dp)
+                .border(3.dp, IslaColors.Ink, RectangleShape)
+                .background(speaker.accent(), RectangleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = speaker.displayName.uppercase(),
+                color = speaker.onAccent(),
+                fontFamily = PixelFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+            )
+        }
     }
 }
 

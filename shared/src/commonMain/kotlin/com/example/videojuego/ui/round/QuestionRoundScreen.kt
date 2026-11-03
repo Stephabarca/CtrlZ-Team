@@ -44,6 +44,11 @@ import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 import com.example.videojuego.ui.theme.accent
 import com.example.videojuego.ui.theme.onAccent
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.painter.Painter
+import org.jetbrains.compose.resources.painterResource
+import videojuego.shared.generated.resources.Res
+import videojuego.shared.generated.resources.*
 
 private const val LOW_TIME_SECONDS = 5L
 private const val LOW_TIME_FRACTION = 0.25f
@@ -102,6 +107,10 @@ fun QuestionRoundScreen(
     val speaker = Speaker.entries.firstOrNull { it.name.equals(question.speakerId, ignoreCase = true) }
         ?: Speaker.NARRATOR
 
+    val valentinaPainter = painterResource(Res.drawable.valentina_oliva_1)
+    val lucasPainter = painterResource(Res.drawable.lucas_ambar_1)
+    val lilaPainter = painterResource(Res.drawable.lila_ariza_1)
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -125,7 +134,9 @@ fun QuestionRoundScreen(
             )
 
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                if (speaker != Speaker.NARRATOR) SpritePlaceholder(speaker)
+                if (speaker != Speaker.NARRATOR) {
+                    SpriteDisplay(speaker, valentinaPainter, lucasPainter, lilaPainter)
+                }
             }
 
             if (feedback != null) DeltaChip(feedback)
@@ -246,22 +257,40 @@ private fun DeltaChip(feedback: AnswerFeedback) {
     }
 }
 
-/** Sprite provisional hasta tener el arte de los personajes (IP-33). */
 @Composable
-private fun SpritePlaceholder(speaker: Speaker) {
-    Box(
-        modifier = Modifier
-            .size(width = 120.dp, height = 170.dp)
-            .border(3.dp, IslaColors.Ink, RectangleShape)
-            .background(speaker.accent(), RectangleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = speaker.displayName.uppercase(),
-            color = speaker.onAccent(),
-            fontFamily = PixelFontFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
+private fun SpriteDisplay(
+    speaker: Speaker,
+    valentinaPainter: Painter,
+    lucasPainter: Painter,
+    lilaPainter: Painter,
+) {
+    val painter = when (speaker) {
+        Speaker.VALENTINA -> valentinaPainter
+        Speaker.LUCAS -> lucasPainter
+        Speaker.LILA -> lilaPainter
+        else -> null
+    }
+    if (painter != null) {
+        Image(
+            painter = painter,
+            contentDescription = speaker.displayName,
+            modifier = Modifier.size(width = 150.dp, height = 220.dp),
         )
+    } else {
+        Box(
+            modifier = Modifier
+                .size(width = 120.dp, height = 170.dp)
+                .border(3.dp, IslaColors.Ink, RectangleShape)
+                .background(speaker.accent(), RectangleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = speaker.displayName.uppercase(),
+                color = speaker.onAccent(),
+                fontFamily = PixelFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+            )
+        }
     }
 }

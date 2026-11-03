@@ -44,4 +44,45 @@ object IntroScript {
         DialogueLine(NARRATOR, "Cae la tarde. Hay que organizarse para pasar la primera noche."),
         DialogueLine(VALENTINA, "¿Qué crees que deberíamos conseguir primero?"),
     )
+
+    /** Nodos de prueba con opciones de decisión para probar el motor en la UI. */
+    val choiceNodes: List<DialogueNode> = listOf(
+        DialogueNode.Line(
+            id = "1",
+            speaker = VALENTINA,
+            text = "¡Qué alivio que despertaras! ¿Cómo te sientes?",
+            nextNodeId = "choice_1",
+        ),
+        DialogueNode.Choice(
+            id = "choice_1",
+            speaker = VALENTINA,
+            prompt = "Elige una opción de respuesta:",
+            options = listOf(
+                ChoiceOption(
+                    id = "opt1",
+                    text = "1. Me alegra estar contigo (+10 afinidad)",
+                    nextNodeId = "node_friendly",
+                    characterId = "valentina",
+                    affinityDelta = 10,
+                ),
+                ChoiceOption(
+                    id = "opt2",
+                    text = "2. Déjame en paz (-5 afinidad)",
+                    nextNodeId = "node_cold",
+                    characterId = "valentina",
+                    affinityDelta = -5,
+                ),
+            ),
+        ),
+        DialogueNode.Line(
+            id = "node_friendly",
+            speaker = VALENTINA,
+            text = "¡A mí también! Juntos saldremos de esta playa.",
+        ),
+        DialogueNode.Line(
+            id = "node_cold",
+            speaker = VALENTINA,
+            text = "Entendido... iré a revisar la fogata.",
+        ),
+    )
 }

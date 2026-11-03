@@ -27,6 +27,8 @@ data class SaveGame(
     val answers: List<AnswerRecord> = emptyList(),
     val minigameResults: List<MinigameRecord> = emptyList(),
     val flags: Map<String, Boolean> = emptyMap(),
+    /** Estado del mapa (día, mochila, cofre). Es null en partidas guardadas antes de existir la cama. */
+    val world: WorldSave? = null,
     val endingId: String? = null,
 ) {
     companion object {

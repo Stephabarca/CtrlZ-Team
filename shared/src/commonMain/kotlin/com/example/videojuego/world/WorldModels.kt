@@ -2,7 +2,7 @@ package com.example.videojuego.world
 
 import com.example.videojuego.narrative.Speaker
 
-enum class TileType(val walkable: Boolean) {
+enum class TileType(val walkable: Boolean, val interactable: Boolean = false) {
     WATER(false),
     SAND(true),
     GRASS(true),
@@ -10,7 +10,23 @@ enum class TileType(val walkable: Boolean) {
     ROCK(false),
     FIRE(false),
     HUT(false),
+    /** Puerta de la cabaña, por fuera: se puede entrar. */
+    HUT_DOOR(false, interactable = true),
+
+    // Interior de la cabaña.
+    FLOOR(true),
+    WALL(false),
+    BED(false, interactable = true),
+    CHEST(false, interactable = true),
+    SUITCASE(false, interactable = true),
+    EXIT_DOOR(false, interactable = true),
 }
+
+/** Dónde está el jugador: en la isla o dentro de la cabaña. */
+enum class Location { OUTSIDE, CABIN }
+
+/** Una casilla concreta del mapa (para saber con qué se puede interactuar). */
+data class TileRef(val type: TileType, val x: Int, val y: Int)
 
 enum class Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -32,7 +48,10 @@ class WorldMap(rows: List<String>) {
     fun isWalkable(x: Int, y: Int): Boolean = tileAt(x, y)?.walkable == true
 
     companion object {
-        /** Leyenda: ~ agua, . arena, g pasto, T palmera, r roca, F fogata, H cabaña. */
+        /**
+         * Leyenda: ~ agua, . arena, g pasto, T palmera, r roca, F fogata, H cabaña, P puerta de la cabaña.
+         * Interior: f piso, # pared, B cama, C cofre, M maleta, E puerta de salida.
+         */
         fun parse(char: Char): TileType = when (char) {
             '~' -> TileType.WATER
             '.' -> TileType.SAND
@@ -41,6 +60,13 @@ class WorldMap(rows: List<String>) {
             'r' -> TileType.ROCK
             'F' -> TileType.FIRE
             'H' -> TileType.HUT
+            'P' -> TileType.HUT_DOOR
+            'f' -> TileType.FLOOR
+            '#' -> TileType.WALL
+            'B' -> TileType.BED
+            'C' -> TileType.CHEST
+            'M' -> TileType.SUITCASE
+            'E' -> TileType.EXIT_DOOR
             else -> throw IllegalArgumentException("Carácter de mapa desconocido: '$char'")
         }
     }
@@ -96,7 +122,13 @@ data class WorldState(
     val nightTrigger: String? = null,
     /** La noche de este día ya empezó (se tocó la fogata); no se vuelve a disparar hasta el día siguiente. */
     val nightStarted: Boolean = false,
+    val location: Location = Location.OUTSIDE,
+    /** Lo guardado en el cofre de la cabaña. */
+    val chest: Map<ItemType, Int> = emptyMap(),
+    /** Objeto interactuable al alcance (puerta, cama, cofre, maleta), o null. */
+    val nearTile: TileRef? = null,
 ) {
     val isNight: Boolean get() = phase == DayPhase.NIGHT
     fun count(item: ItemType): Int = inventory[item] ?: 0
+    fun inChest(item: ItemType): Int = chest[item] ?: 0
 }

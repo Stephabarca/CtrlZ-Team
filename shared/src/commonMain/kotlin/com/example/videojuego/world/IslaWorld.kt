@@ -5,7 +5,7 @@ import com.example.videojuego.narrative.Speaker
 /** La isla del juego: mapa, personajes y punto de inicio. */
 object IslaWorld {
 
-    /** ~ agua, . arena, g pasto, T palmera, r roca, F fogata, H cabaña. */
+    /** ~ agua, . arena, g pasto, T palmera, r roca, F fogata, H cabaña, P puerta de la cabaña. */
     val map = WorldMap(
         listOf(
             "~~~~~~~~~~~~~~~~~~~~~~~~",
@@ -14,7 +14,7 @@ object IslaWorld {
             "~~~~~.....gggg...T.~~~~~",
             "~~~....ggTggggggg....~~~",
             "~~....ggggggggggHH....~~",
-            "~~...TgggggggTggHHg...~~",
+            "~~...TgggggggTggHPg...~~",
             "~...ggggggggggggggggr..~",
             "~...TgggggggggggggTg...~",
             "~...gggFgggggggggggg...~",
@@ -64,6 +64,17 @@ object IslaWorld {
                 "Si recoges algo útil, dímelo. No me gusta adivinar.",
             ),
         ),
+    )
+
+    /** Controlador con la isla y la cabaña. Es lo que usa el juego. */
+    fun newController() = WorldController(
+        map = map,
+        npcs = npcs,
+        startX = PLAYER_START_X,
+        startY = PLAYER_START_Y,
+        indoorMap = CabinWorld.map,
+        indoorStartX = CabinWorld.START_X,
+        indoorStartY = CabinWorld.START_Y,
     )
 
     fun npc(id: String): NpcData? = npcs.firstOrNull { it.id == id }

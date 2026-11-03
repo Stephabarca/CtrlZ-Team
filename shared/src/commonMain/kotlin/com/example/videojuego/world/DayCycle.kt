@@ -3,7 +3,7 @@ package com.example.videojuego.world
 enum class DayPhase { DAY, NIGHT }
 
 /** Duración de un día en milisegundos: 5 minutos. */
-const val DAY_LENGTH_MS = 5L * 60L * 1000L
+const val DAY_LENGTH_MS = 3L * 60L * 1000L
 
 /** Número de días (y de noches) del juego. */
 const val TOTAL_DAYS = 3

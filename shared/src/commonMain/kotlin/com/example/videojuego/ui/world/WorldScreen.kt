@@ -3,6 +3,7 @@ package com.example.videojuego.ui.world
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -53,11 +55,14 @@ import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 import com.example.videojuego.ui.theme.accent
 import com.example.videojuego.ui.theme.onAccent
+import com.example.videojuego.world.CabinWorld
 import com.example.videojuego.world.DayPhase
 import com.example.videojuego.world.Direction
 import com.example.videojuego.world.GiftResult
 import com.example.videojuego.world.IslaWorld
 import com.example.videojuego.world.ItemType
+import com.example.videojuego.world.Location
+import com.example.videojuego.world.SleepCheck
 import com.example.videojuego.world.NpcData
 import com.example.videojuego.world.TileType
 import com.example.videojuego.world.WorldController
@@ -83,6 +88,7 @@ private val MOVE_DOWN = setOf(Key.S, Key.DirectionDown)
 private val MOVE_KEYS = MOVE_LEFT + MOVE_RIGHT + MOVE_UP + MOVE_DOWN
 private val INTERACT_KEYS = setOf(Key.E, Key.Enter, Key.Spacebar)
 
+private val CABIN_BG = Color(0xFF2B2230)
 private val WATER_A = Color(0xFF4AA3D8)
 private val WATER_B = Color(0xFF3E94C9)
 private val WATER_FOAM = Color(0xFFBFE6F5)
@@ -123,6 +129,9 @@ private class Actor(
  * @param onNightStart se llama con el id de la noche ("night1", "night2"...). Mostrar ahí la ronda de preguntas
  *   y, al terminarla, llamar a controller.startNextDay().
  * @param onGift se llama al regalar algo; sumar ahí la afinidad ([GiftResult.affinityDelta]).
+ * @param onSleep se llama al dormir en la cama de la cabaña; guardar ahí la partida (controller.toWorldSave()).
+ * @param onBackToMenu si no es null aparece el botón de pausa; "Volver al menú" (con confirmación) llama a esto.
+ * @param onOpenSettings si no es null, la pausa muestra AJUSTES.
  * @param controller se puede pasar uno propio para conservar la posición y el día al ir a otra pantalla y volver.
  */
 @Composable
@@ -130,11 +139,10 @@ fun WorldScreen(
     onNightStart: (nightId: String) -> Unit,
     modifier: Modifier = Modifier,
     onGift: (GiftResult) -> Unit = {},
-    controller: WorldController = remember {
-        WorldController(IslaWorld.map, IslaWorld.npcs, IslaWorld.PLAYER_START_X, IslaWorld.PLAYER_START_Y)
-    },
-    map: WorldMap = IslaWorld.map,
-    npcs: List<NpcData> = IslaWorld.npcs,
+    onSleep: () -> Unit = {},
+    onBackToMenu: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
+    controller: WorldController = remember { IslaWorld.newController() },
 ) {
     val state by controller.state.collectAsState()
     var joystick by remember { mutableStateOf(Offset.Zero) }
@@ -142,6 +150,13 @@ fun WorldScreen(
     var interactHeld by remember { mutableStateOf(false) }
     var chat by remember { mutableStateOf<ChatDialog?>(null) }
     var toast by remember { mutableStateOf<String?>(null) }
+    var chestOpen by remember { mutableStateOf(false) }
+    var pauseOpen by remember { mutableStateOf(false) }
+    var infoText by remember { mutableStateOf<String?>(null) }
+    /** 0 = despierto, 1 = durmiendo, 2 = partida guardada. */
+    var sleepStage by remember { mutableIntStateOf(0) }
+    var sleepRequest by remember { mutableIntStateOf(0) }
+    val overlayOpen = chat != null || chestOpen || pauseOpen || infoText != null || sleepStage != 0
     var hasMoved by remember { mutableStateOf(false) }
 
     val keyboard = Offset(
@@ -149,16 +164,46 @@ fun WorldScreen(
         (if (keys.any { it in MOVE_DOWN }) 1f else 0f) - (if (keys.any { it in MOVE_UP }) 1f else 0f),
     )
     val rawInput = if (joystick != Offset.Zero) joystick else keyboard
-    val currentInput by rememberUpdatedState(if (chat != null) Offset.Zero else rawInput)
-    val clockPaused by rememberUpdatedState(chat != null)
+    val currentInput by rememberUpdatedState(if (overlayOpen) Offset.Zero else rawInput)
+    val clockPaused by rememberUpdatedState(overlayOpen)
+    val currentOnSleep by rememberUpdatedState(onSleep)
     val currentOnNightStart by rememberUpdatedState(onNightStart)
 
-    val interact: () -> Unit = {
-        val npc = controller.interact()?.let { id -> npcs.firstOrNull { it.id == id } }
-        if (npc != null && chat == null) {
+    // Puerta, cama, cofre y maletas.
+    val tileAction: () -> Unit = {
+        val tile = controller.interactTile()
+        if (tile != null && !overlayOpen) {
             joystick = Offset.Zero
-            val text = if (controller.state.value.isNight) WorldStrings.NightNpc else controller.talk(npc.id) ?: npc.idleLine
-            chat = ChatDialog(npc, text)
+            when (tile.type) {
+                TileType.HUT_DOOR -> controller.enterCabin()
+                TileType.EXIT_DOOR -> controller.exitCabin()
+                TileType.BED -> when (controller.sleepCheck()) {
+                    SleepCheck.OK -> {
+                        sleepStage = 1
+                        sleepRequest++
+                    }
+                    SleepCheck.NIGHT -> infoText = WorldStrings.NoSleepAtNight
+                    SleepCheck.NOT_NEAR_BED -> Unit
+                }
+                TileType.CHEST -> chestOpen = true
+                TileType.SUITCASE -> infoText = CabinWorld.suitcaseText(tile.x, tile.y)
+                else -> Unit
+            }
+        }
+    }
+
+    // Hablar con quien está cerca; si no hay nadie, usar el objeto cercano (tecla E / Enter / Espacio).
+    val interact: () -> Unit = {
+        if (!overlayOpen) {
+            val location = controller.state.value.location
+            val npc = controller.interact()?.let { id -> controller.npcsFor(location).firstOrNull { it.id == id } }
+            if (npc != null) {
+                joystick = Offset.Zero
+                val text = if (controller.state.value.isNight) WorldStrings.NightNpc else controller.talk(npc.id) ?: npc.idleLine
+                chat = ChatDialog(npc, text)
+            } else {
+                tileAction()
+            }
         }
     }
     val currentInteract by rememberUpdatedState(interact)
@@ -184,6 +229,17 @@ fun WorldScreen(
         if (nightId != null) {
             controller.acknowledgeNight()
             currentOnNightStart(nightId)
+        }
+    }
+    // Dormir: pantalla oscura, se guarda la partida y se despierta.
+    LaunchedEffect(sleepRequest) {
+        if (sleepRequest > 0) {
+            sleepStage = 1
+            delay(1800)
+            currentOnSleep()
+            sleepStage = 2
+            delay(1600)
+            sleepStage = 0
         }
     }
     // Aviso corto "+1 Coco" al recoger algo.
@@ -221,14 +277,16 @@ fun WorldScreen(
     // Los estilos se crean aquí (dentro de un @Composable) porque PixelFontFamily puede cargar una fuente.
     val labelStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = PixelFontFamily)
     val markerStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = PixelFontFamily)
-    val actors = npcs.map {
+    val location = state.location
+    val activeMap = controller.mapFor(location)
+    val actors = controller.npcsFor(location).map {
         Actor(it.centerX, it.centerY, it.speaker.accent(), HAIR, it.name, Direction.DOWN, false)
     } + Actor(state.playerX, state.playerY, IslaColors.Primary, HAIR, null, state.facing, false)
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(WATER_A)
+            .background(if (state.location == Location.CABIN) CABIN_BG else WATER_A)
             // Cada toque vuelve a pedir el foco del teclado, sin consumir el evento (el joystick sigue funcionando).
             .pointerInput(Unit) {
                 awaitPointerEventScope {
@@ -276,8 +334,9 @@ fun WorldScreen(
     ) {
         Canvas(Modifier.fillMaxSize()) {
             drawWorld(
-                map, actors, state.playerX, state.playerY, state.timeMs, measurer, labelStyle, markerStyle,
-                darknessAt(state.phase, state.dayRemainingMs), state.isNight,
+                activeMap, actors, state.playerX, state.playerY, state.timeMs, measurer, labelStyle, markerStyle,
+                if (location == Location.CABIN) 0f else darknessAt(state.phase, state.dayRemainingMs),
+                state.isNight && location == Location.OUTSIDE,
             )
         }
 
@@ -286,6 +345,7 @@ fun WorldScreen(
                 Box(
                     Modifier
                         .align(Alignment.TopEnd)
+                        .padding(top = 52.dp)
                         .background(Color(0xCC1F2A2C), RectangleShape)
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                 ) {
@@ -308,8 +368,11 @@ fun WorldScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    if (state.isNight) "${WorldStrings.Night} ${state.day}"
-                    else "${WorldStrings.Day} ${state.day}  ${formatClock(state.dayRemainingMs)}",
+                    when {
+                        location == Location.CABIN -> "${WorldStrings.Day} ${state.day}  ${WorldStrings.Cabin}"
+                        state.isNight -> "${WorldStrings.Night} ${state.day}"
+                        else -> "${WorldStrings.Day} ${state.day}  ${formatClock(state.dayRemainingMs)}"
+                    },
                     color = IslaColors.Ink,
                     fontFamily = PixelFontFamily,
                     fontWeight = FontWeight.Bold,
@@ -336,7 +399,7 @@ fun WorldScreen(
                 }
             }
 
-            if ((!hasMoved || state.isNight) && chat == null) {
+            if ((!hasMoved || (state.isNight && location == Location.OUTSIDE)) && !overlayOpen) {
                 Box(
                     Modifier
                         .align(Alignment.TopCenter)
@@ -356,16 +419,21 @@ fun WorldScreen(
             }
 
             val dialog = chat
-            if (dialog == null) {
+            if (!overlayOpen) {
                 VirtualJoystick(onChange = { joystick = it }, modifier = Modifier.align(Alignment.BottomStart))
-                if (state.nearbyNpcId != null) {
-                    ActionButton(
-                        text = WorldStrings.Talk,
-                        onClick = interact,
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 40.dp),
-                    )
+                Column(
+                    Modifier.align(Alignment.BottomEnd).padding(bottom = 40.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.End,
+                ) {
+                    if (state.nearbyNpcId != null) {
+                        ActionButton(text = WorldStrings.Talk, onClick = interact)
+                    }
+                    state.nearTile?.let { tile ->
+                        ActionButton(text = WorldStrings.tileAction(tile.type), onClick = tileAction)
+                    }
                 }
-            } else {
+            } else if (dialog != null) {
                 val npc = dialog.npc
                 DialogBox(
                     speakerName = npc.name,
@@ -391,7 +459,35 @@ fun WorldScreen(
                     }
                 }
             }
+
+            if (!overlayOpen && onBackToMenu != null) {
+                Box(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .border(3.dp, IslaColors.Ink, RectangleShape)
+                        .background(IslaColors.Paper, RectangleShape)
+                        .clickable { pauseOpen = true; joystick = Offset.Zero }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
+                    Text("II", color = IslaColors.Ink, fontFamily = PixelFontFamily, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
+            if (pauseOpen && onBackToMenu != null) {
+                PausePanel(
+                    onResume = { pauseOpen = false },
+                    onSettings = onOpenSettings,
+                    onBackToMenu = onBackToMenu,
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            }
+            if (chestOpen) {
+                ChestPanel(state, controller, onClose = { chestOpen = false }, modifier = Modifier.align(Alignment.BottomCenter))
+            }
+            infoText?.let { text ->
+                InfoPanel(text, onClose = { infoText = null }, modifier = Modifier.align(Alignment.BottomCenter))
+            }
         }
+        if (sleepStage != 0) SleepOverlay(sleepStage)
     }
 }
 
@@ -430,7 +526,12 @@ private fun DrawScope.drawWorld(
     for (ty in firstY..lastY) {
         for (tx in firstX..lastX) {
             val type = map.tileAt(tx, ty) ?: continue
-            val roof = type == TileType.HUT && map.tileAt(tx, ty - 1) != TileType.HUT
+            // "roof" = primera casilla del grupo: el techo de la cabaña o la cabecera de la cama.
+            val roof = when (type) {
+                TileType.HUT -> map.tileAt(tx, ty - 1) != TileType.HUT
+                TileType.BED -> map.tileAt(tx - 1, ty) != TileType.BED
+                else -> false
+            }
             drawTile(type, tx, ty, screenX(tx.toFloat()), screenY(ty.toFloat()), tile, timeMs, roof)
         }
     }
@@ -519,6 +620,53 @@ private fun DrawScope.drawTile(
             rect(Color(0xFF6B4423), 5f, 11f, 6f, 1f)
             rect(Color(0xFFF28C28), 5f, 6f + flicker, 6f, 5f - flicker)
             rect(Color(0xFFFFD84D), 7f, 8f + flicker, 2f, 3f - flicker)
+        }
+        TileType.FLOOR -> {
+            fill(Color(0xFFB98B5E))
+            rect(Color(0xFFA67A50), 0f, 15f, 16f, 1f)
+            if (hash == 2) rect(Color(0xFFA67A50), 6f, 6f, 3f, 1f)
+        }
+        TileType.WALL -> {
+            fill(Color(0xFF6B4A2E))
+            rect(Color(0xFF7D5A3A), 0f, 0f, 16f, 1f)
+            rect(Color(0xFF54391F), 0f, 14f, 16f, 2f)
+        }
+        TileType.BED -> {
+            fill(Color(0xFFB98B5E))
+            rect(Color(0xFF6B4423), 0f, 3f, 16f, 12f)
+            rect(Color(0xFF5B8DB8), 0f, 5f, 16f, 9f)
+            rect(Color(0xFF7FB0DA), 0f, 5f, 16f, 2f)
+            if (roof) rect(Color(0xFFF5F0E6), 2f, 6f, 6f, 5f) // almohada en la cabecera
+        }
+        TileType.CHEST -> {
+            fill(Color(0xFFB98B5E))
+            rect(Color(0xFF8B5E3C), 2f, 6f, 12f, 8f)
+            rect(Color(0xFF6F4A2E), 2f, 4f, 12f, 4f)
+            rect(Color(0xFF3F2A18), 2f, 8f, 12f, 1f)
+            rect(Color(0xFFFFD84D), 7f, 7f, 2f, 3f)
+        }
+        TileType.SUITCASE -> {
+            fill(Color(0xFFB98B5E))
+            val body = listOf(Color(0xFF8E3B3B), Color(0xFF3B5E8E), Color(0xFF4F7A4A), Color(0xFF7A5A8E))[hash % 4]
+            rect(Color(0x33000000), 1f, 13f, 14f, 2f)
+            rect(body, 2f, 5f, 12f, 9f)
+            rect(Color(0xFF2B2B3A), 6f, 3f, 4f, 2f)
+            rect(Color(0x55000000), 4f, 5f, 1f, 9f)
+            rect(Color(0x55000000), 11f, 5f, 1f, 9f)
+            rect(Color(0xFFFFD84D), 7f, 8f, 2f, 2f)
+        }
+        TileType.EXIT_DOOR -> {
+            fill(Color(0xFF6B4A2E))
+            rect(Color(0xFF4A3220), 3f, 0f, 10f, 16f)
+            rect(Color(0xFFF5E3B3), 4f, 1f, 8f, 2f)
+            rect(Color(0xFFFFD84D), 11f, 9f, 1f, 1f)
+        }
+        TileType.HUT_DOOR -> {
+            fill(Color(0xFF9C6B3F))
+            rect(Color(0xFF7A5230), 0f, 5f, 16f, 1f)
+            rect(Color(0xFF4A3220), 3f, 3f, 10f, 13f)
+            rect(Color(0xFF6F4A2E), 4f, 4f, 8f, 12f)
+            rect(Color(0xFFFFD84D), 10f, 10f, 1f, 1f)
         }
         TileType.HUT -> {
             fill(Color(0xFF9C6B3F))

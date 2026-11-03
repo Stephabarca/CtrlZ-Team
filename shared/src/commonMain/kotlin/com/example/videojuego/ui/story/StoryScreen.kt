@@ -38,7 +38,7 @@ import videojuego.shared.generated.resources.*
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * Noche 1 jugable (EP-6): carga noche1.json, lo valida y lo recorre con diálogos y opciones.
+ * Noche 1 jugable (EP-6): carga night1.json, lo valida y lo recorre con diálogos y opciones.
  * Si el JSON no valida, NO se integra: se muestra el error y se puede continuar.
  */
 @Composable
@@ -51,11 +51,11 @@ fun StoryScreen(
 
     val carga by produceState<CargaHistoria?>(initialValue = null) {
         value = try {
-            StoryLoader.cargarValidada(Res.readBytes("files/noche1.json").decodeToString())
+            StoryLoader.cargarValidada(Res.readBytes("files/night1.json").decodeToString())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            CargaHistoria.Error("No se pudo leer noche1.json: ${e.message}", e)
+            CargaHistoria.Error("No se pudo leer night1.json: ${e.message}", e)
         }
     }
 

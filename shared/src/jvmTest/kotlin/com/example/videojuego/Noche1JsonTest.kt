@@ -7,11 +7,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-/** Criterios de aceptación de EP-6 sobre el archivo real noche1.json. */
+/** Criterios de aceptación de EP-6 sobre el archivo real night1.json. */
 class Noche1JsonTest {
 
     // Gradle ejecuta los tests con el directorio del módulo (shared) como base.
-    private val archivo = File("src/commonMain/composeResources/files/noche1.json")
+    private val archivo = File("src/commonMain/composeResources/files/night1.json")
 
     private fun cargar(): Historia {
         val resultado = StoryLoader.cargarValidada(archivo.readText(Charsets.UTF_8), minRamas = 2)

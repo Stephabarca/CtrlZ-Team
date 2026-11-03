@@ -45,6 +45,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.painter.Painter
+import org.jetbrains.compose.resources.painterResource
+import videojuego.shared.generated.resources.Res
+import videojuego.shared.generated.resources.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.videojuego.timer.frameDelta
@@ -277,6 +282,31 @@ fun WorldScreen(
     // Los estilos se crean aquí (dentro de un @Composable) porque PixelFontFamily puede cargar una fuente.
     val labelStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = PixelFontFamily)
     val markerStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = PixelFontFamily)
+
+    val prota1 = painterResource(Res.drawable.prota_1) // LEFT
+    val prota2 = painterResource(Res.drawable.prota_2) // DOWN (front)
+    val prota3 = painterResource(Res.drawable.prota_3) // UP (back)
+    val prota4 = painterResource(Res.drawable.prota_4) // RIGHT
+
+    val valentinaPainter = painterResource(Res.drawable.valentina_oliva_4)
+    val lucasPainter = painterResource(Res.drawable.lucas_ambar_4)
+    val lilaPainter = painterResource(Res.drawable.lila_ariza_4)
+
+    val spritePainters = remember(
+        prota1, prota2, prota3, prota4,
+        valentinaPainter, lucasPainter, lilaPainter,
+    ) {
+        mapOf(
+            "prota_LEFT" to prota1,
+            "prota_DOWN" to prota2,
+            "prota_UP" to prota3,
+            "prota_RIGHT" to prota4,
+            "Valentina" to valentinaPainter,
+            "Lucas" to lucasPainter,
+            "Lila" to lilaPainter,
+        )
+    }
+
     val location = state.location
     val activeMap = controller.mapFor(location)
     val actors = controller.npcsFor(location).map {
@@ -337,6 +367,7 @@ fun WorldScreen(
                 activeMap, actors, state.playerX, state.playerY, state.timeMs, measurer, labelStyle, markerStyle,
                 if (location == Location.CABIN) 0f else darknessAt(state.phase, state.dayRemainingMs),
                 state.isNight && location == Location.OUTSIDE,
+                spritePainters,
             )
         }
 
@@ -509,6 +540,7 @@ private fun DrawScope.drawWorld(
     markerStyle: TextStyle,
     darkness: Float,
     night: Boolean,
+    spritePainters: Map<String, Painter> = emptyMap(),
 ) {
     val tile = floor(size.width / VIEW_TILES_X).coerceAtLeast(16f)
     val viewW = size.width / tile
@@ -540,11 +572,18 @@ private fun DrawScope.drawWorld(
     for (actor in actors.sortedBy { it.y }) {
         val centerX = screenX(actor.x)
         val feetY = screenY(actor.y) + tile * 0.4f
-        drawPerson(centerX, feetY, tile, actor)
-        if (actor.name != null) drawLabel(measurer, actor.name, centerX, feetY - tile * 1.15f, labelStyle)
+        val painter = when (actor.name) {
+            "Valentina" -> spritePainters["Valentina"]
+            "Lucas" -> spritePainters["Lucas"]
+            "Lila" -> spritePainters["Lila"]
+            null -> spritePainters["prota_${actor.facing.name}"]
+            else -> null
+        }
+        drawPerson(centerX, feetY, tile, actor, painter)
+        if (actor.name != null) drawLabel(measurer, actor.name, centerX, feetY - tile * 1.8f, labelStyle)
         if (actor.showMarker) {
             val bob = if ((timeMs / 350L) % 2L == 0L) 0f else tile / 16f
-            drawMarker(measurer, centerX, feetY - tile * 1.55f + bob, tile, markerStyle)
+            drawMarker(measurer, centerX, feetY - tile * 2.2f + bob, tile, markerStyle)
         }
     }
 
@@ -680,22 +719,43 @@ private fun DrawScope.drawTile(
     }
 }
 
-/** Persona de 1 casilla de alto con el pie en [feetY]. */
-private fun DrawScope.drawPerson(centerX: Float, feetY: Float, tile: Float, actor: Actor) {
+/** Persona de 1 casilla de alto con el pie en [feetY]. Muestra sprite de imagen si está disponible. */
+private fun DrawScope.drawPerson(
+    centerX: Float,
+    feetY: Float,
+    tile: Float,
+    actor: Actor,
+    painter: Painter? = null,
+) {
     val u = tile / 16f
-    fun rect(color: Color, x: Float, y: Float, w: Float, h: Float) =
-        drawRect(color, Offset(centerX + x * u, feetY + y * u), Size(w * u, h * u))
+    if (painter != null) {
+        // Sombra suave en la base
+        drawRect(Color(0x33000000), Offset(centerX - 5f * u, feetY - 1f * u), Size(10f * u, 2f * u))
 
-    rect(Color(0x33000000), -5f, -1f, 10f, 2f)          // sombra
-    rect(Color(0xFF2B2B3A), -3f, -4f, 6f, 4f)           // piernas
-    rect(actor.body, -4f, -10f, 8f, 6f)                 // cuerpo
-    rect(SKIN, -3f, -15f, 6f, 5f)                       // cabeza
-    rect(actor.hair, -3f, -16f, 6f, 2f)                 // pelo
-    when (actor.facing) {                               // ojos según hacia dónde mira
-        Direction.DOWN -> { rect(Color.Black, -2f, -13f, 1f, 1f); rect(Color.Black, 1f, -13f, 1f, 1f) }
-        Direction.LEFT -> rect(Color.Black, -2f, -13f, 1f, 1f)
-        Direction.RIGHT -> rect(Color.Black, 1f, -13f, 1f, 1f)
-        Direction.UP -> rect(actor.hair, -3f, -15f, 6f, 3f)
+        // Dibujar el sprite centrado
+        val spriteWidth = tile * 1.2f
+        val spriteHeight = tile * 1.6f
+        translate(left = centerX - spriteWidth / 2f, top = feetY - spriteHeight) {
+            with(painter) {
+                draw(size = Size(spriteWidth, spriteHeight))
+            }
+        }
+    } else {
+        // Arte provisional hecho con rectángulos
+        fun rect(color: Color, x: Float, y: Float, w: Float, h: Float) =
+            drawRect(color, Offset(centerX + x * u, feetY + y * u), Size(w * u, h * u))
+
+        rect(Color(0x33000000), -5f, -1f, 10f, 2f)          // sombra
+        rect(Color(0xFF2B2B3A), -3f, -4f, 6f, 4f)           // piernas
+        rect(actor.body, -4f, -10f, 8f, 6f)                 // cuerpo
+        rect(SKIN, -3f, -15f, 6f, 5f)                       // cabeza
+        rect(actor.hair, -3f, -16f, 6f, 2f)                 // pelo
+        when (actor.facing) {                               // ojos según hacia dónde mira
+            Direction.DOWN -> { rect(Color.Black, -2f, -13f, 1f, 1f); rect(Color.Black, 1f, -13f, 1f, 1f) }
+            Direction.LEFT -> rect(Color.Black, -2f, -13f, 1f, 1f)
+            Direction.RIGHT -> rect(Color.Black, 1f, -13f, 1f, 1f)
+            Direction.UP -> rect(actor.hair, -3f, -15f, 6f, 3f)
+        }
     }
 }
 

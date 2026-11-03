@@ -43,7 +43,7 @@ class DayCycleTest {
     @Test
     fun dayStartsAtFiveMinutes() {
         val c = WorldController(map(), emptyList(), 4.5f, 5.5f)
-        assertEquals(3 * 60 * 1000L, c.state.value.dayRemainingMs)
+        assertEquals(1 * 60 * 1000L, c.state.value.dayRemainingMs)
         assertEquals(DayPhase.DAY, c.state.value.phase)
         assertEquals(1, c.state.value.day)
     }

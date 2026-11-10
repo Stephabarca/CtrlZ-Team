@@ -33,9 +33,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.videojuego.menu.MenuInfo
 import com.example.videojuego.ui.components.ActionButton
+import com.example.videojuego.ui.components.RopedLogs
 import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 import kotlin.math.floor
+
+private val MENU_BUTTON_WIDTH = 260.dp
 
 private val SKY_TOP = Color(0xFFF2A6A0)
 private val SKY_LOW = Color(0xFFF6C99A)
@@ -98,16 +101,21 @@ fun MainMenuScreen(
                     )
                     else -> {
                         if (info.corrupt) NoticePanel(MenuStrings.CorruptTitle, MenuStrings.CorruptBody)
-                        if (info.canContinue) {
-                            ActionButton(text = MenuStrings.Continue, onClick = onContinue)
-                            info.description?.let { StatusLabel(it) }
-                        }
-                        ActionButton(
-                            text = MenuStrings.NewGame,
-                            onClick = { if (info.newGameNeedsConfirmation) confirming = true else onNewGame() },
+                        if (info.canContinue) info.description?.let { StatusLabel(it) }
+                        RopedLogs(
+                            buildList<@Composable () -> Unit> {
+                                if (info.canContinue) add { ActionButton(text = MenuStrings.Continue, onClick = onContinue, minWidth = MENU_BUTTON_WIDTH) }
+                                add {
+                                    ActionButton(
+                                        text = MenuStrings.NewGame,
+                                        onClick = { if (info.newGameNeedsConfirmation) confirming = true else onNewGame() },
+                                        minWidth = MENU_BUTTON_WIDTH,
+                                    )
+                                }
+                                add { ActionButton(text = MenuStrings.Settings, onClick = onSettings, minWidth = MENU_BUTTON_WIDTH) }
+                                add { ActionButton(text = MenuStrings.Credits, onClick = onCredits, minWidth = MENU_BUTTON_WIDTH) }
+                            },
                         )
-                        ActionButton(text = MenuStrings.Settings, onClick = onSettings)
-                        ActionButton(text = MenuStrings.Credits, onClick = onCredits)
                     }
                 }
             }
@@ -168,8 +176,12 @@ private fun NoticePanel(title: String, body: String) {
 @Composable
 private fun ConfirmPanel(onYes: () -> Unit, onNo: () -> Unit) {
     NoticePanel(MenuStrings.ConfirmTitle, MenuStrings.ConfirmBody)
-    ActionButton(text = MenuStrings.ConfirmYes, onClick = onYes)
-    ActionButton(text = MenuStrings.ConfirmNo, onClick = onNo)
+    RopedLogs(
+        listOf<@Composable () -> Unit>(
+            { ActionButton(text = MenuStrings.ConfirmYes, onClick = onYes, minWidth = MENU_BUTTON_WIDTH) },
+            { ActionButton(text = MenuStrings.ConfirmNo, onClick = onNo, minWidth = MENU_BUTTON_WIDTH) },
+        ),
+    )
 }
 
 // ---------------------------------------------------------------------------------------------

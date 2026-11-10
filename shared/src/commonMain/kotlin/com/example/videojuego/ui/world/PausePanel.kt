@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.videojuego.ui.components.ActionButton
+import com.example.videojuego.ui.components.RopedLogs
 import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 
@@ -45,14 +46,22 @@ fun PausePanel(
     ) {
         if (!confirming) {
             Text(WorldStrings.PauseTitle, color = IslaColors.Action, fontFamily = PixelFontFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            ActionButton(text = WorldStrings.Resume, onClick = onResume)
-            if (onSettings != null) ActionButton(text = WorldStrings.Settings, onClick = onSettings)
-            ActionButton(text = WorldStrings.BackToMenu, onClick = { confirming = true })
+            RopedLogs(
+                buildList<@Composable () -> Unit> {
+                    add { ActionButton(text = WorldStrings.Resume, onClick = onResume, minWidth = 260.dp) }
+                    if (onSettings != null) add { ActionButton(text = WorldStrings.Settings, onClick = onSettings, minWidth = 260.dp) }
+                    add { ActionButton(text = WorldStrings.BackToMenu, onClick = { confirming = true }, minWidth = 260.dp) }
+                },
+            )
         } else {
             Text(WorldStrings.LeaveTitle, color = IslaColors.Action, fontFamily = PixelFontFamily, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(WorldStrings.LeaveBody, color = IslaColors.Ink, fontFamily = PixelFontFamily, fontSize = 12.sp, lineHeight = 17.sp)
-            ActionButton(text = WorldStrings.LeaveYes, onClick = onBackToMenu)
-            ActionButton(text = WorldStrings.LeaveNo, onClick = { confirming = false })
+            RopedLogs(
+                listOf<@Composable () -> Unit>(
+                    { ActionButton(text = WorldStrings.LeaveYes, onClick = onBackToMenu, minWidth = 260.dp) },
+                    { ActionButton(text = WorldStrings.LeaveNo, onClick = { confirming = false }, minWidth = 260.dp) },
+                ),
+            )
         }
     }
 }

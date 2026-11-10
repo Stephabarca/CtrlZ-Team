@@ -24,6 +24,8 @@ import com.example.videojuego.ui.fishing.FishingScreen
 import com.example.videojuego.ui.intro.IntroScreen
 import com.example.videojuego.ui.menu.MainMenuScreen
 import com.example.videojuego.ui.round.QuestionRoundHost
+import com.example.videojuego.audio.BackgroundMusic
+import com.example.videojuego.audio.MusicRules
 import com.example.videojuego.ui.settings.SettingsScreen
 import com.example.videojuego.ui.summary.NightSummaryScreen
 import com.example.videojuego.ui.theme.IslaPerdidaTheme
@@ -73,6 +75,9 @@ fun App() {
             )
             screen = "summary"
         }
+
+        // Música de fondo: la del menú en menú, ajustes y créditos; silencio en el resto. Usa el volumen de Ajustes.
+        BackgroundMusic(MusicRules.trackFor(screen, settingsReturn), settings.musicVolume)
 
         when (screen) {
             "menu" -> MainMenuScreen(

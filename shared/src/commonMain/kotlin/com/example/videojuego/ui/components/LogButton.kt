@@ -101,7 +101,10 @@ fun ActionButton(
     }
 }
 
-/** Dibuja el tronco: cuerpo con vetas y las dos caras cortadas con anillos en los extremos. */
+/**
+ * Dibuja el tronco visto en perspectiva: el extremo izquierdo es la corteza redondeada (la cara cortada
+ * queda oculta detrás) y solo el extremo derecho muestra la cara cortada con los anillos.
+ */
 private fun DrawScope.drawLog(bark: Color, pressed: Boolean) {
     val w = size.width
     val h = size.height
@@ -109,6 +112,11 @@ private fun DrawScope.drawLog(bark: Color, pressed: Boolean) {
     val cap = h * 0.55f
     val bodyL = cap / 2f
     val bodyW = w - cap
+
+    // Extremo izquierdo: media elipse de corteza; el cuerpo tapa su mitad derecha.
+    drawOval(OUTLINE, Offset(0f, 0f), Size(cap, h))
+    drawOval(bark, Offset(px * 1.5f, px * 1.5f), Size(cap - px * 3f, h - px * 3f))
+    if (pressed) drawOval(Color(0x33000000), Offset(px * 1.5f, px * 1.5f), Size(cap - px * 3f, h - px * 3f))
 
     drawRect(bark, Offset(bodyL, 0f), Size(bodyW, h))
     // Vetas: tramos cortados a distintas alturas.
@@ -124,12 +132,12 @@ private fun DrawScope.drawLog(bark: Color, pressed: Boolean) {
     drawRect(OUTLINE, Offset(bodyL, h - px * 1.5f), Size(bodyW, px * 1.5f))
     if (pressed) drawRect(Color(0x33000000), Offset(bodyL, 0f), Size(bodyW, h))
 
-    for (x in listOf(0f, w - cap)) {
-        drawOval(OUTLINE, Offset(x, 0f), Size(cap, h))
-        drawOval(CUT_FACE, Offset(x + px * 1.5f, px * 1.5f), Size(cap - px * 3f, h - px * 3f))
-        drawOval(RING, Offset(x + cap * 0.22f, h * 0.2f), Size(cap * 0.56f, h * 0.6f), style = Stroke(px * 0.8f))
-        drawOval(RING, Offset(x + cap * 0.38f, h * 0.38f), Size(cap * 0.24f, h * 0.24f), style = Stroke(px * 0.8f))
-    }
+    // Extremo derecho: la única cara cortada visible, con sus anillos.
+    val x = w - cap
+    drawOval(OUTLINE, Offset(x, 0f), Size(cap, h))
+    drawOval(CUT_FACE, Offset(x + px * 1.5f, px * 1.5f), Size(cap - px * 3f, h - px * 3f))
+    drawOval(RING, Offset(x + cap * 0.22f, h * 0.2f), Size(cap * 0.56f, h * 0.6f), style = Stroke(px * 0.8f))
+    drawOval(RING, Offset(x + cap * 0.38f, h * 0.38f), Size(cap * 0.24f, h * 0.24f), style = Stroke(px * 0.8f))
 }
 
 /**

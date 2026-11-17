@@ -26,6 +26,8 @@ import com.example.videojuego.ui.menu.MainMenuScreen
 import com.example.videojuego.ui.round.QuestionRoundHost
 import com.example.videojuego.audio.BackgroundMusic
 import com.example.videojuego.audio.MusicRules
+import com.example.videojuego.audio.Sfx
+import androidx.compose.runtime.collectAsState
 import com.example.videojuego.ui.settings.SettingsScreen
 import com.example.videojuego.ui.summary.NightSummaryScreen
 import com.example.videojuego.ui.theme.IslaPerdidaTheme
@@ -63,6 +65,9 @@ fun App() {
             content = GameServices.content.load()
             loadResult = GameServices.saves.load()
         }
+        // Efectos de sonido: se leen una vez y usan el volumen de efectos de Ajustes.
+        LaunchedEffect(Unit) { Sfx.preload() }
+        Sfx.volume = settings.sfxVolume
 
         fun showSummary(c: GameContent, endSave: SaveGame, stats: FishingStats?) {
             val night = c.nights.first { it.id == nightId }
@@ -76,8 +81,10 @@ fun App() {
             screen = "summary"
         }
 
-        // Música de fondo: la del menú en menú, ajustes y créditos; silencio en el resto. Usa el volumen de Ajustes.
-        BackgroundMusic(MusicRules.trackFor(screen, settingsReturn), settings.musicVolume)
+        // Fondo: música del menú (menú y créditos), playa de día o de noche (mapa) y reloj (preguntas).
+        // Ajustes sigue con lo de la pantalla de origen. Usa el volumen de música de Ajustes.
+        val worldState by world.state.collectAsState()
+        BackgroundMusic(MusicRules.trackFor(screen, settingsReturn, worldState.phase), settings.musicVolume)
 
         when (screen) {
             "menu" -> MainMenuScreen(

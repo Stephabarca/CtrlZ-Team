@@ -59,6 +59,10 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
         }
+        jvmMain.dependencies {
+            // Decodifica el mp3 de la música en escritorio (la JVM solo trae wav).
+            implementation("javazoom:jlayer:1.0.1")
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }

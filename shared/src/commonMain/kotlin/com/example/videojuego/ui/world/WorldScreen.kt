@@ -56,6 +56,8 @@ import com.example.videojuego.timer.frameDelta
 import com.example.videojuego.ui.Strings
 import com.example.videojuego.ui.components.ActionButton
 import com.example.videojuego.ui.components.DialogBox
+import com.example.videojuego.audio.Sfx
+import com.example.videojuego.audio.SoundEffect
 import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 import com.example.videojuego.ui.theme.accent
@@ -497,7 +499,7 @@ fun WorldScreen(
                         .align(Alignment.TopEnd)
                         .border(3.dp, IslaColors.Ink, RectangleShape)
                         .background(IslaColors.Paper, RectangleShape)
-                        .clickable { pauseOpen = true; joystick = Offset.Zero }
+                        .clickable { Sfx.play(SoundEffect.CLICK); pauseOpen = true; joystick = Offset.Zero }
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                 ) {
                     Text("II", color = IslaColors.Ink, fontFamily = PixelFontFamily, fontWeight = FontWeight.Bold, fontSize = 14.sp)

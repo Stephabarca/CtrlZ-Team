@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.videojuego.audio.Sfx
+import com.example.videojuego.audio.SoundEffect
 import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 
@@ -31,7 +33,10 @@ fun AnswerOptionCard(
             .fillMaxWidth()
             .border(3.dp, IslaColors.Ink, RectangleShape)
             .background(IslaColors.Paper, RectangleShape)
-            .clickable(onClick = onClick)
+            .clickable {
+                Sfx.play(SoundEffect.CLICK)
+                onClick()
+            }
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,

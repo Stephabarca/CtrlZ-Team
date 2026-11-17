@@ -40,6 +40,8 @@ import com.example.videojuego.ui.components.ActionButton
 import com.example.videojuego.ui.components.AffinityHearts
 import com.example.videojuego.ui.components.AnswerOptionCard
 import com.example.videojuego.ui.components.DialogBox
+import com.example.videojuego.audio.Sfx
+import com.example.videojuego.audio.SoundEffect
 import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 import com.example.videojuego.ui.theme.accent
@@ -90,6 +92,14 @@ fun QuestionRoundScreen(
 
     LaunchedEffect(answered) {
         if (answered) timer.pause()
+    }
+    // Sonido según la respuesta: si sube la afinidad suena el positivo; si baja, el negativo.
+    LaunchedEffect(feedback) {
+        val delta = feedback?.appliedDelta ?: return@LaunchedEffect
+        when {
+            delta > 0 -> Sfx.play(SoundEffect.POSITIVE)
+            delta < 0 -> Sfx.play(SoundEffect.NEGATIVE)
+        }
     }
     LaunchedEffect(timerState.expired) {
         if (timerState.expired && !answered) controller.timeExpired(timerState.elapsedMs)

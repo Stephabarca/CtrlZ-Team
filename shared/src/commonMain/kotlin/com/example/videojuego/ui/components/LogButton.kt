@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.videojuego.audio.SoundEffect
+import com.example.videojuego.audio.Sfx
 import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 
@@ -75,7 +77,10 @@ fun ActionButton(
             .widthIn(min = minWidth)
             .offset(y = if (pressed) 2.dp else 0.dp)
             .alpha(if (disabled) 0.5f else 1f)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+            .clickable(interactionSource = interaction, indication = null) {
+                if (!disabled) Sfx.play(SoundEffect.CLICK)
+                onClick()
+            }
             .drawBehind { drawLog(bark, pressed) }
             .padding(horizontal = 40.dp, vertical = 18.dp),
         contentAlignment = Alignment.Center,

@@ -6,7 +6,7 @@
   "backgroundId": "bg_refugio",
   "timeLimitSec": 12,
   "answerWeight": 1.2,
-  "minigameId": "memoria",
+  "minigameId": "hydrohopper",
   "intro": [
     {
       "speakerId": "narrator",

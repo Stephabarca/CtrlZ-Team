@@ -18,12 +18,12 @@
     "difficulty": "media"
   },
   {
-    "id": "memoria",
-    "name": "Memoria de colores",
+    "id": "hydrohopper",
+    "name": "Rescate en el mar",
     "characterId": "lila",
-    "type": "memory",
-    "maxAffinity": 10,
-    "durationSec": 60,
+    "type": "runner",
+    "maxAffinity": 15,
+    "durationSec": 30,
     "difficulty": "alta"
   }
 ]

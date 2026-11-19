@@ -20,6 +20,7 @@ import com.example.videojuego.minigame.fishing.FishingStats
 import com.example.videojuego.summary.NightSummary
 import com.example.videojuego.summary.NightSummaryBuilder
 import com.example.videojuego.ui.credits.CreditsScreen
+import com.example.videojuego.ui.demo.HydroHopperDemo
 import com.example.videojuego.ui.fishing.FishingScreen
 import com.example.videojuego.ui.intro.IntroScreen
 import com.example.videojuego.ui.menu.MainMenuScreen
@@ -39,7 +40,7 @@ private fun parseColor(hex: String): Color =
 fun App() {
     IslaPerdidaTheme {
         val world = remember { IslaWorld.newController() }
-        var screen by remember { mutableStateOf("menu") }
+        var screen by remember { mutableStateOf("hydrohopper_demo") }
         var nightId by remember { mutableStateOf("night1") }
 
         // Ajustes (velocidad del texto y volúmenes) y a qué pantalla volver al cerrarlos.
@@ -75,6 +76,8 @@ fun App() {
         }
 
         when (screen) {
+            "hydrohopper_demo" -> HydroHopperDemo(onFinished = { screen = "menu" })
+
             "menu" -> MainMenuScreen(
                 info = loadResult?.let { MainMenuLogic.info(it) },
                 onContinue = {

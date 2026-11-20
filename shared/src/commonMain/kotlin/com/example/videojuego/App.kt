@@ -17,12 +17,15 @@ import com.example.videojuego.data.save.WorldSave
 import com.example.videojuego.data.save.SaveGame
 import com.example.videojuego.menu.MainMenuLogic
 import com.example.videojuego.minigame.fishing.FishingStats
+import com.example.videojuego.minigame.hydrohopper.HydroHopperStats
 import com.example.videojuego.summary.NightSummary
 import com.example.videojuego.summary.NightSummaryBuilder
 import com.example.videojuego.ui.credits.CreditsScreen
+import com.example.videojuego.ui.demo.HydroHopperDemo
 import com.example.videojuego.ui.fishing.FishingScreen
 import com.example.videojuego.ui.intro.IntroScreen
 import com.example.videojuego.ui.menu.MainMenuScreen
+import com.example.videojuego.ui.minigame.HydroHopperScreen
 import com.example.videojuego.ui.round.QuestionRoundHost
 import com.example.videojuego.audio.BackgroundMusic
 import com.example.videojuego.audio.MusicRules
@@ -53,10 +56,11 @@ fun App() {
         // Contenido del juego (JSON), cargado una vez.
         var content by remember { mutableStateOf<GameContent?>(null) }
 
-        // Progreso: el actual, el de cuando empezó la noche (para el "antes y después") y el resultado de la pesca.
+        // Progreso: el actual, el de cuando empezó la noche (para el "antes y después") y el resultado de los minijuegos.
         var save by remember { mutableStateOf<SaveGame?>(null) }
         var nightStartSave by remember { mutableStateOf<SaveGame?>(null) }
         var fishing by remember { mutableStateOf<FishingStats?>(null) }
+        var hydroHopper by remember { mutableStateOf<HydroHopperStats?>(null) }
         var summary by remember { mutableStateOf<NightSummary?>(null) }
 
         // Al abrir el juego: carga el contenido y lee la partida guardada para el menú.
@@ -69,7 +73,7 @@ fun App() {
         LaunchedEffect(Unit) { Sfx.preload() }
         Sfx.volume = settings.sfxVolume
 
-        fun showSummary(c: GameContent, endSave: SaveGame, stats: FishingStats?) {
+        fun showSummary(c: GameContent, endSave: SaveGame, stats: FishingStats? = null, hydroStats: HydroHopperStats? = null) {
             val night = c.nights.first { it.id == nightId }
             summary = NightSummaryBuilder.build(
                 content = c,
@@ -77,6 +81,7 @@ fun App() {
                 saveAtNightStart = nightStartSave ?: ProgressRules.newGame(c),
                 saveAtEnd = endSave,
                 fishing = stats,
+                hydroHopper = hydroStats,
             )
             screen = "summary"
         }
@@ -87,6 +92,8 @@ fun App() {
         BackgroundMusic(MusicRules.trackFor(screen, settingsReturn, worldState.phase), settings.musicVolume)
 
         when (screen) {
+            "hydrohopper_demo" -> HydroHopperDemo(onFinished = { screen = "menu" })
+
             "menu" -> MainMenuScreen(
                 info = loadResult?.let { MainMenuLogic.info(it) },
                 onContinue = {
@@ -166,8 +173,8 @@ fun App() {
                     val night = c?.nights?.firstOrNull { it.id == nightId }
                     when {
                         c == null -> screen = "world"
-                        // Por ahora solo la noche 1 tiene minijuego (pesca); las demás van directo al resumen.
                         night?.minigameId == "pesca" -> screen = "fishing"
+                        night?.minigameId == "hydrohopper" || night?.minigameId == "memoria" -> screen = "hydrohopper"
                         else -> showSummary(c, result.save, null)
                     }
                 },
@@ -194,6 +201,25 @@ fun App() {
                             GameServices.saves.save(updated)
                             fishing = stats
                             showSummary(c, updated, stats)
+                        },
+                    )
+                }
+            }
+
+            "hydrohopper" -> {
+                val c = content
+                val night = c?.nights?.firstOrNull { it.id == nightId }
+                val current = save
+                if (c != null && night != null && current != null) {
+                    val minigame = c.minigame(night.minigameId)
+                    HydroHopperScreen(
+                        durationSec = minigame.durationSec,
+                        onFinished = { stats ->
+                            val updated = ProgressRules.recordMinigame(c, current, minigame, stats.score)
+                            save = updated
+                            GameServices.saves.save(updated)
+                            hydroHopper = stats
+                            showSummary(c, updated, null, stats)
                         },
                     )
                 }

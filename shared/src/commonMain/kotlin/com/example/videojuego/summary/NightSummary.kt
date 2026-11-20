@@ -5,6 +5,7 @@ import com.example.videojuego.data.content.NightData
 import com.example.videojuego.data.rules.ProgressRules
 import com.example.videojuego.data.save.SaveGame
 import com.example.videojuego.minigame.fishing.FishingStats
+import com.example.videojuego.minigame.hydrohopper.HydroHopperStats
 
 /** Una pregunta de la ronda, con lo que respondió el jugador y por qué importa. */
 data class QuestionReview(
@@ -23,8 +24,8 @@ data class MinigameReview(
     val name: String,
     val score: Int,
     val affinityGranted: Int,
-    val stats: FishingStats,
     val tips: List<String>,
+    val fishingStats: FishingStats? = null,
 )
 
 data class NightSummary(
@@ -59,7 +60,8 @@ object NightSummaryBuilder {
         night: NightData,
         saveAtNightStart: SaveGame,
         saveAtEnd: SaveGame,
-        fishing: FishingStats?,
+        fishing: FishingStats? = null,
+        hydroHopper: HydroHopperStats? = null,
         timeoutMessage: String = DEFAULT_TIMEOUT_TIP,
     ): NightSummary {
         val character = content.character(night.characterId)
@@ -88,10 +90,14 @@ object NightSummaryBuilder {
         }
         val minigameData = content.minigames.firstOrNull { it.id == night.minigameId }
         val granted = saveAtEnd.minigameResults.lastOrNull { it.minigameId == night.minigameId }?.affinityGranted ?: 0
-        val minigame = if (fishing != null && minigameData != null) {
-            MinigameReview(minigameData.name, fishing.score, granted, fishing, fishingTips(fishing))
-        } else {
-            null
+        val minigame = when {
+            fishing != null && minigameData != null -> {
+                MinigameReview(minigameData.name, fishing.score, granted, fishingTips(fishing), fishing)
+            }
+            hydroHopper != null && minigameData != null -> {
+                MinigameReview(minigameData.name, hydroHopper.score, granted, hydroHopperTips(hydroHopper))
+            }
+            else -> null
         }
 
         val improvements = reviews.filter { it.healthy != true }.map { it.feedback }.distinct()
@@ -140,6 +146,20 @@ object NightSummaryBuilder {
             add("No hubo ningún intento. La próxima vez toca JALAR cuando el corcho se hunda.")
         }
         if (isEmpty()) add("Pesca tranquila y sin errores. Buen trabajo.")
+    }
+
+    /** Consejos del minijuego Hydro Hopper (Noche 3). */
+    fun hydroHopperTips(stats: HydroHopperStats): List<String> = buildList {
+        if (stats.rescued) {
+            add("¡Alcanzaron el barco de rescate a tiempo! La balsa navegó en equipo con Valentina, Lucas y Lila.")
+        }
+        if (stats.hitCount > 0) {
+            add("Sufrieron ${stats.hitCount} impacto(s) con obstáculos. Recuerda usar el salto (▲ SALTAR / Espacio) para esquivarlos.")
+        }
+        if (stats.dodgedCount >= 3) {
+            add("¡Gran agilidad! Esquivaron ${stats.dodgedCount} obstáculos flotantes en el mar.")
+        }
+        if (isEmpty()) add("Navegación perfecta y sin accidentes. ¡Excelente trabajo!")
     }
 
     private fun times(n: Int) = if (n == 1) "1 vez" else "$n veces"

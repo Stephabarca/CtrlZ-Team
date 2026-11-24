@@ -87,6 +87,13 @@ data class NpcData(
     val idleLine: String,
     /** Conversaciones muy cortas de día; se muestran una tras otra. Si está vacía se usa [idleLine]. */
     val chatLines: List<String> = emptyList(),
+    /** Charla propia de un día (día -> frases). Si el día no está, se usa [chatLines]. */
+    val dayLines: Map<Int, List<String>> = emptyMap(),
+    /**
+     * Recuerdos de la noche anterior, en orden de prioridad: (bandera, frase). La primera frase cuya bandera esté
+     * activa (ver MemoryFlags) se dice la primera vez que se le habla en un día desde el día 2.
+     */
+    val memoryLines: List<Pair<String, String>> = emptyList(),
 ) {
     /** Centro del personaje, en coordenadas de casilla. */
     val centerX: Float get() = tileX + 0.5f
@@ -123,6 +130,8 @@ data class WorldState(
     /** La noche de este día ya empezó (se tocó la fogata); no se vuelve a disparar hasta el día siguiente. */
     val nightStarted: Boolean = false,
     val location: Location = Location.OUTSIDE,
+    /** Días cuyo objetivo ya se cumplió. */
+    val goalsDone: Set<Int> = emptySet(),
     /** Lo guardado en el cofre de la cabaña. */
     val chest: Map<ItemType, Int> = emptyMap(),
     /** Objeto interactuable al alcance (puerta, cama, cofre, maleta), o null. */

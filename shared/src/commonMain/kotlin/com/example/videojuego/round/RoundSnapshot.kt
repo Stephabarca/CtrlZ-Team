@@ -13,7 +13,9 @@ data class RoundSnapshot(
     val save: SaveGame,
     /** Null cuando la pregunta en curso ya se respondió (la siguiente empieza con el tiempo completo). */
     val remainingMs: Long? = null,
-)
+) {
+    companion object
+}
 
 object RoundSnapshotCodec {
     fun encode(snapshot: RoundSnapshot): String =

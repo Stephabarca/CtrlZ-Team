@@ -3,8 +3,7 @@
 .gradle
 **/build/
 xcuserdata
-# Los paquetes de código llamados "build" (p. ej. minigame/build) sí se suben; solo se ignora la salida de Gradle.
-!**/src/**/build/
+!src/**/build/
 local.properties
 .idea
 .DS_Store

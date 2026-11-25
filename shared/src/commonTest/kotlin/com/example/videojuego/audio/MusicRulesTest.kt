@@ -7,9 +7,9 @@ import kotlin.test.assertNull
 
 class MusicRulesTest {
     @Test
-    fun menuAndCredits_playMenuMusic() {
+    fun menuPlaysItsMusic_creditsPlayTheirSong() {
         assertEquals(MusicTrack.MENU, MusicRules.trackFor("menu"))
-        assertEquals(MusicTrack.MENU, MusicRules.trackFor("credits"))
+        assertEquals(MusicTrack.CREDITS, MusicRules.trackFor("credits"))
     }
 
     @Test

@@ -6,6 +6,9 @@ import com.example.videojuego.world.DayPhase
 enum class MusicTrack(val path: String) {
     MENU("files/music/island_sway.mp3"),
 
+    /** Canción de los créditos finales, «Donde termina el mar». */
+    CREDITS("files/music/donde_termina_el_mar.mp3"),
+
     /** Olas y ambiente de la playa de día, en el mapa de la isla. */
     BEACH_DAY("files/sounds/beach_day_sound.wav"),
 
@@ -25,13 +28,14 @@ enum class MusicTrack(val path: String) {
 /** Qué suena de fondo en cada pantalla de [com.example.videojuego.App]. null = silencio. */
 object MusicRules {
     /**
-     * Menú y créditos usan la música del menú; el mapa, el ambiente de playa de día o de noche según [phase];
+     * El menú usa su música y los créditos su canción; el mapa, el ambiente de playa de día o de noche según [phase];
      * la ronda de preguntas, el reloj; el final en el barco, las olas del mar. Ajustes sigue con lo que suene en la pantalla desde la que se abrió
      * ([settingsReturn]), para no empezar la música del menú en pleno juego.
      */
     fun trackFor(screen: String, settingsReturn: String = "menu", phase: DayPhase = DayPhase.DAY): MusicTrack? =
         when (screen) {
-            "menu", "credits", "endings" -> MusicTrack.MENU
+            "menu", "endings" -> MusicTrack.MENU
+            "credits" -> MusicTrack.CREDITS
             "world" -> if (phase == DayPhase.NIGHT) MusicTrack.BEACH_NIGHT else MusicTrack.BEACH_DAY
             "round" -> MusicTrack.ROUND_CLOCK
             "finale" -> MusicTrack.SEA

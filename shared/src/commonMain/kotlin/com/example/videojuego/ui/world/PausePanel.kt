@@ -32,6 +32,7 @@ fun PausePanel(
     onSettings: (() -> Unit)?,
     onBackToMenu: () -> Unit,
     modifier: Modifier = Modifier,
+    onDiary: (() -> Unit)? = null,
 ) {
     var confirming by remember { mutableStateOf(false) }
     Column(
@@ -46,6 +47,7 @@ fun PausePanel(
         if (!confirming) {
             Text(WorldStrings.PauseTitle, color = IslaColors.Action, fontFamily = PixelFontFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             ActionButton(text = WorldStrings.Resume, onClick = onResume)
+            if (onDiary != null) ActionButton(text = DiaryStrings.Open, onClick = onDiary)
             if (onSettings != null) ActionButton(text = WorldStrings.Settings, onClick = onSettings)
             ActionButton(text = WorldStrings.BackToMenu, onClick = { confirming = true })
         } else {

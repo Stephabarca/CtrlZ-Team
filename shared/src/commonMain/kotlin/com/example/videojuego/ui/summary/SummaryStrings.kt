@@ -13,6 +13,7 @@ object SummaryStrings {
     const val Healthy = "SANA"
     const val Risk = "RIESGO"
 
+    const val Stamp = "NOCHE\nSUPERADA"
     fun healthyAnswers(healthy: Int, total: Int) = "Respuestas sanas: $healthy de $total"
     fun averageTime(seconds: Float) = "Tiempo promedio: ${((seconds * 10).toInt() / 10f)} s"
     fun delta(value: Int) = if (value > 0) "+$value" else "$value"

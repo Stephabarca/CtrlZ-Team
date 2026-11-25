@@ -12,6 +12,7 @@ interface SaveStorage {
 object StorageKeys {
     const val SAVE = "save_slot_1"
     const val SETTINGS = "game_settings"
+    const val ENDINGS = "endings_seen"
 }
 
 /** Guardado real: preferencias del sistema (Android, escritorio e iOS). */

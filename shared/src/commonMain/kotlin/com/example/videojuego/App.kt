@@ -16,7 +16,26 @@ import com.example.videojuego.data.save.GameSettings
 import com.example.videojuego.data.save.LoadResult
 import com.example.videojuego.data.save.WorldSave
 import com.example.videojuego.data.save.SaveGame
+import com.example.videojuego.demo.DEMO_KEYS
+import com.example.videojuego.demo.DemoCommand
+import com.example.videojuego.demo.DemoKeyMap
+import com.example.videojuego.diary.DiaryBuilder
 import com.example.videojuego.finale.FinaleRules
+import com.example.videojuego.report.ReportBuilder
+import com.example.videojuego.ui.report.ReportScreen
+import com.example.videojuego.ui.storm.StormScreen
+import com.example.videojuego.ui.title.TitleCard
+import com.example.videojuego.ui.title.TitleCardScreen
+import com.example.videojuego.ui.title.TitleCards
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
 import com.example.videojuego.menu.MainMenuLogic
 import com.example.videojuego.minigame.build.BuildGame
 import com.example.videojuego.minigame.build.BuildStats
@@ -25,9 +44,14 @@ import com.example.videojuego.minigame.hydrohopper.HydroHopperStats
 import com.example.videojuego.summary.NightSummary
 import com.example.videojuego.summary.NightSummaryBuilder
 import com.example.videojuego.ui.build.BuildScreen
+import com.example.videojuego.ui.components.FadeHost
 import com.example.videojuego.ui.credits.CreditsScreen
 import com.example.videojuego.ui.demo.HydroHopperDemo
+import com.example.videojuego.ui.finale.EndingsScreen
 import com.example.videojuego.ui.finale.FinaleScreen
+import com.example.videojuego.ui.finale.FinaleStrings
+import com.example.videojuego.ui.flashback.FlashbackData
+import com.example.videojuego.ui.flashback.FlashbackScreen
 import com.example.videojuego.ui.fishing.FishingScreen
 import com.example.videojuego.ui.intro.IntroScreen
 import com.example.videojuego.ui.menu.MainMenuScreen
@@ -66,7 +90,18 @@ fun App() {
         var fishing by remember { mutableStateOf<FishingStats?>(null) }
         var building by remember { mutableStateOf<BuildStats?>(null) }
         var hydroHopper by remember { mutableStateOf<HydroHopperStats?>(null) }
+        // Recuerdo del personaje antes del viaje: cuál se está mostrando y cuáles ya se vieron en esta sesión.
+        var flashbackFor by remember { mutableStateOf<String?>(null) }
+        var flashbacksSeen by remember { mutableStateOf(emptySet<String>()) }
+        // Final obtenido (para mostrarlo en los créditos) y finales vistos (galería del menú).
+        var endingId by remember { mutableStateOf<String?>(null) }
+        var endingsSeen by remember { mutableStateOf(GameServices.endings.seen()) }
         var summary by remember { mutableStateOf<NightSummary?>(null) }
+        // Tarjeta de título (DÍA / NOCHE) y a qué pantalla se pasa al terminar.
+        var titleCard by remember { mutableStateOf<TitleCard?>(null) }
+        var afterTitle by remember { mutableStateOf("world") }
+        // Final forzado desde las teclas de demo (null = el que decide el juego).
+        var forcedEnding by remember { mutableStateOf<String?>(null) }
 
         // Al abrir el juego: carga el contenido y lee la partida guardada para el menú.
         var loadResult by remember { mutableStateOf<LoadResult?>(null) }
@@ -95,7 +130,56 @@ fun App() {
             screen = "summary"
         }
 
-        when (screen) {
+        fun showTitle(card: TitleCard, next: String) {
+            titleCard = card
+            afterTitle = next
+            screen = "title"
+        }
+
+        // Empieza una noche: tarjeta de título y luego el recuerdo del personaje (una vez, saltable) o la ronda.
+        fun startNight(id: String) {
+            nightId = id
+            nightStartSave = save
+            fishing = null
+            building = null
+            hydroHopper = null
+            val night = content?.nights?.firstOrNull { it.id == id }
+            val showFlashback = night != null && FlashbackData.shouldPlay(
+                characterId = night.characterId,
+                nightOrder = night.order,
+                answeredQuestionIds = save?.answers.orEmpty().map { it.questionId },
+                seen = flashbacksSeen,
+            )
+            if (showFlashback && night != null) flashbackFor = night.characterId
+            val next = if (showFlashback) "flashback" else "round"
+            if (night != null) showTitle(TitleCards.night(night.order, night.title), next) else screen = next
+        }
+
+        // Atajos ocultos de demo: Ctrl+Shift+tecla.
+        val demoKeys = if (!DEMO_KEYS) Modifier else Modifier.onPreviewKeyEvent { e ->
+            if (e.type != KeyEventType.KeyDown || !e.isCtrlPressed || !e.isShiftPressed) return@onPreviewKeyEvent false
+            val ch = when (e.key) {
+                Key.Two -> '2'; Key.Three -> '3'; Key.S -> 'S'; Key.V -> 'V'; Key.U -> 'U'
+                Key.L -> 'L'; Key.A -> 'A'; Key.F -> 'F'; Key.R -> 'R'
+                else -> return@onPreviewKeyEvent false
+            }
+            val cmd = DemoKeyMap.commandFor(ch) ?: return@onPreviewKeyEvent false
+            when (cmd) {
+                is DemoCommand.Night -> if (content != null) startNight("night${cmd.order}")
+                DemoCommand.Storm -> screen = "storm"
+                is DemoCommand.Finale -> {
+                    forcedEnding = cmd.endingId
+                    screen = "finale"
+                }
+                DemoCommand.Report -> screen = "report"
+            }
+            true
+        }
+
+        // Cada cambio de pantalla se hace con un fundido a negro.
+        Box(demoKeys) {
+        FadeHost(screen) { shownScreen ->
+        when (shownScreen) {
             "hydrohopper_demo" -> HydroHopperDemo(onFinished = { screen = "menu" })
 
             "menu" -> MainMenuScreen(
@@ -118,16 +202,22 @@ fun App() {
                     fishing = null
                     building = null
                     hydroHopper = null
+                    flashbacksSeen = emptySet()
                     summary = null
                     world.restore(WorldSave())
                     world.setMemory(emptySet())
-                    screen = "intro"
+                    forcedEnding = null
+                    screen = "storm"
                 },
                 onSettings = {
                     settingsReturn = "menu"
                     screen = "settings"
                 },
                 onCredits = { screen = "credits" },
+                onEndings = {
+                    endingsSeen = GameServices.endings.seen()
+                    screen = "endings"
+                },
             )
 
             "settings" -> SettingsScreen(
@@ -139,20 +229,28 @@ fun App() {
                 onBack = { screen = settingsReturn },
             )
 
-            "credits" -> CreditsScreen(onBack = { screen = "menu" })
+            "credits" -> CreditsScreen(
+                onBack = {
+                    endingId = null
+                    screen = "menu"
+                },
+                endingTitle = endingId?.let { FinaleStrings.endingTitle(it) },
+            )
 
-            "intro" -> IntroScreen(onFinished = { screen = "world" })
+            "endings" -> EndingsScreen(seen = endingsSeen, onBack = { screen = "menu" })
+
+            "storm" -> StormScreen(onFinished = { screen = "intro" })
+
+            "title" -> titleCard?.let { card ->
+                TitleCardScreen(card = card, onFinished = { screen = afterTitle })
+            }
+
+            "intro" -> IntroScreen(onFinished = { showTitle(TitleCards.day(1, IslaWorld.npcForNight("night1")?.name), "world") })
 
             "world" -> WorldScreen(
                 controller = world,
-                onNightStart = { id ->
-                    nightId = id
-                    nightStartSave = save
-                    fishing = null
-                    building = null
-                    hydroHopper = null
-                    screen = "round"
-                },
+                onNightStart = { id -> startNight(id) },
+                diary = { content?.let { DiaryBuilder.build(it, save) }.orEmpty() },
                 onGift = { gift ->
                     // Un regalo suma un poco de afinidad (+1 o +3). Se guarda al dormir en la cama.
                     content?.let { c ->
@@ -180,6 +278,14 @@ fun App() {
                     val updated = base.copy(world = world.toWorldSave())
                     save = updated
                     GameServices.saves.save(updated)
+                },
+            )
+
+            "flashback" -> FlashbackScreen(
+                characterId = flashbackFor.orEmpty(),
+                onFinished = {
+                    flashbackFor?.let { flashbacksSeen = flashbacksSeen + it }
+                    screen = "round"
                 },
             )
 
@@ -281,13 +387,31 @@ fun App() {
                     val tie = c?.nights.orEmpty().associate { n ->
                         n.characterId to (current?.minigameResults?.lastOrNull { it.minigameId == n.minigameId }?.score ?: 0)
                     }
-                    FinaleRules.decide(
+                    forcedEnding?.let { FinaleRules.forced(it) } ?: FinaleRules.decide(
                         affinity = current?.affinity.orEmpty(),
                         tieBreak = tie,
                         startAffinity = start,
                     )
                 }
-                FinaleScreen(result = result, onFinished = { screen = "credits" })
+                FinaleScreen(
+                    result = result,
+                    onFinished = {
+                        // Se guarda el final visto (aparte de la partida) y se muestra en los créditos.
+                        GameServices.endings.record(result.endingId)
+                        endingsSeen = GameServices.endings.seen()
+                        endingId = result.endingId
+                        forcedEnding = null
+                        // Antes de los créditos, el informe de cómo se relacionó el jugador.
+                        screen = "report"
+                    },
+                )
+            }
+
+            "report" -> content?.let { c ->
+                ReportScreen(
+                    report = remember(save, c) { ReportBuilder.build(c, save) },
+                    onContinue = { screen = "credits" },
+                )
             }
 
             else -> summary?.let { s ->
@@ -301,11 +425,15 @@ fun App() {
                             screen = "finale"
                         } else {
                             world.startNextDay()
-                            screen = "world"
+                            // Tarjeta del nuevo día: "DÍA 2 · Con Lucas".
+                            val day = world.state.value.day
+                            showTitle(TitleCards.day(day, IslaWorld.npcForNight("night$day")?.name), "world")
                         }
                     },
                 )
             }
         }
+        } // FadeHost
+        } // Box
     }
 }

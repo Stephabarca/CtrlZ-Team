@@ -141,9 +141,8 @@ private fun MinigameCard(review: MinigameReview) {
             color = if (review.affinityGranted >= 0) GOOD else BAD,
             fontFamily = PixelFontFamily, fontWeight = FontWeight.Bold, fontSize = 12.sp,
         )
-        review.fishingStats?.let { s ->
-            Body(SummaryStrings.catches(s.perfect, s.good, s.weak, s.lost, s.early))
-        }
+        val s = review.stats
+        Body(SummaryStrings.catches(s.perfect, s.good, s.weak, s.lost, s.early))
         review.tips.forEach { Body("• $it") }
     }
 }

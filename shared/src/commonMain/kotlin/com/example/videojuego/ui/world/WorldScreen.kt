@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -64,6 +66,7 @@ import com.example.videojuego.world.CabinWorld
 import com.example.videojuego.world.DayPhase
 import com.example.videojuego.world.Direction
 import com.example.videojuego.world.GiftResult
+import com.example.videojuego.world.GoalResult
 import com.example.videojuego.world.IslaWorld
 import com.example.videojuego.world.ItemType
 import com.example.videojuego.world.Location
@@ -134,6 +137,7 @@ private class Actor(
  * @param onNightStart se llama con el id de la noche ("night1", "night2"...). Mostrar ahí la ronda de preguntas
  *   y, al terminarla, llamar a controller.startNextDay().
  * @param onGift se llama al regalar algo; sumar ahí la afinidad ([GiftResult.affinityDelta]).
+ * @param onGoalDone se llama al entregar el objetivo del día; sumar ahí la afinidad ([GoalResult.affinityDelta]).
  * @param onSleep se llama al dormir en la cama de la cabaña; guardar ahí la partida (controller.toWorldSave()).
  * @param onBackToMenu si no es null aparece el botón de pausa; "Volver al menú" (con confirmación) llama a esto.
  * @param onOpenSettings si no es null, la pausa muestra AJUSTES.
@@ -144,6 +148,7 @@ fun WorldScreen(
     onNightStart: (nightId: String) -> Unit,
     modifier: Modifier = Modifier,
     onGift: (GiftResult) -> Unit = {},
+    onGoalDone: (GoalResult) -> Unit = {},
     onSleep: () -> Unit = {},
     onBackToMenu: (() -> Unit)? = null,
     onOpenSettings: (() -> Unit)? = null,
@@ -368,6 +373,7 @@ fun WorldScreen(
                 if (location == Location.CABIN) 0f else darknessAt(state.phase, state.dayRemainingMs),
                 state.isNight && location == Location.OUTSIDE,
                 spritePainters,
+                woodMarks = if (location == Location.OUTSIDE && state.day >= WorldController.WOOD_FROM_DAY) controller.woodTrees - state.harvested else emptySet(),
             )
         }
 
@@ -393,8 +399,6 @@ fun WorldScreen(
             Column(
                 Modifier
                     .align(Alignment.TopStart)
-                    .border(3.dp, IslaColors.Ink, RectangleShape)
-                    .background(IslaColors.Paper, RectangleShape)
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
@@ -402,20 +406,50 @@ fun WorldScreen(
                     when {
                         location == Location.CABIN -> "${WorldStrings.Day} ${state.day}  ${WorldStrings.Cabin}"
                         state.isNight -> "${WorldStrings.Night} ${state.day}"
-                        else -> "${WorldStrings.Day} ${state.day}  ${formatClock(state.dayRemainingMs)}"
+                        else -> "${WorldStrings.Day} ${state.day}"
                     },
                     color = IslaColors.Ink,
                     fontFamily = PixelFontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
                 )
+                DayClock(night = state.isNight, remainingMs = state.dayRemainingMs, modifier = Modifier.align(Alignment.CenterHorizontally))
                 val bag = ItemType.entries.filter { state.count(it) > 0 }
-                Text(
-                    if (bag.isEmpty()) WorldStrings.BagEmpty else bag.joinToString("  ") { "${it.label} x${state.count(it)}" },
-                    color = IslaColors.Ink,
-                    fontFamily = PixelFontFamily,
-                    fontSize = 10.sp,
-                )
+                if (bag.isEmpty()) {
+                    Text(
+                        WorldStrings.BagEmpty,
+                        color = IslaColors.Ink,
+                        fontFamily = PixelFontFamily,
+                        fontSize = 10.sp,
+                    )
+                } else {
+                    // Cada objeto con su dibujo y cuántos hay.
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        bag.forEach { item ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+                                ItemIcon(item, Modifier.size(22.dp))
+                                Text(
+                                    "x${state.count(item)}",
+                                    color = IslaColors.Ink,
+                                    fontFamily = PixelFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                )
+                            }
+                        }
+                    }
+                }
+                controller.currentGoal(state)?.let { goal ->
+                    if (!state.isNight && location == Location.OUTSIDE) {
+                        Text(
+                            WorldStrings.goal(goal.title, state.count(goal.item), goal.amount),
+                            color = IslaColors.Action,
+                            fontFamily = PixelFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                        )
+                    }
+                }
             }
 
             toast?.let {
@@ -474,6 +508,18 @@ fun WorldScreen(
                     modifier = Modifier.align(Alignment.BottomCenter),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        controller.currentGoal(state)?.takeIf { controller.canDeliverGoal(npc.id) }?.let { goal ->
+                            ActionButton(
+                                text = WorldStrings.deliver(goal.item.label, goal.amount),
+                                onClick = {
+                                    val result = controller.deliverGoal(npc.id)
+                                    if (result != null) {
+                                        onGoalDone(result)
+                                        chat = dialog.copy(text = result.line)
+                                    }
+                                },
+                            )
+                        }
                         ItemType.entries.filter { controller.canGift(npc.id, it) }.forEach { item ->
                             ActionButton(
                                 text = WorldStrings.gift(item.label, state.count(item)),
@@ -525,10 +571,6 @@ fun WorldScreen(
 /** Conversación abierta con un personaje. */
 private data class ChatDialog(val npc: NpcData, val text: String)
 
-// ---------------------------------------------------------------------------------------------
-// Dibujo. Todo es arte provisional hecho con rectángulos; se reemplaza por sprites reales (IP-32/33).
-// ---------------------------------------------------------------------------------------------
-
 private fun DrawScope.drawWorld(
     map: WorldMap,
     actors: List<Actor>,
@@ -541,6 +583,8 @@ private fun DrawScope.drawWorld(
     darkness: Float,
     night: Boolean,
     spritePainters: Map<String, Painter> = emptyMap(),
+    /** Árboles de madera que todavía no se recogieron: se dibujan con un tronco en la base. */
+    woodMarks: Set<Pair<Int, Int>> = emptySet(),
 ) {
     val tile = floor(size.width / VIEW_TILES_X).coerceAtLeast(16f)
     val viewW = size.width / tile
@@ -565,6 +609,14 @@ private fun DrawScope.drawWorld(
                 else -> false
             }
             drawTile(type, tx, ty, screenX(tx.toFloat()), screenY(ty.toFloat()), tile, timeMs, roof)
+            if (type == TileType.TREE && (tx to ty) in woodMarks) {
+                val u = tile / 16f
+                val wx = screenX(tx.toFloat())
+                val wy = screenY(ty.toFloat())
+                drawRect(Color(0xFFB5793F), Offset(wx + 2f * u, wy + 12f * u), Size(12f * u, 3f * u))
+                drawRect(Color(0xFFE0B27A), Offset(wx + 2f * u, wy + 12f * u), Size(3f * u, 3f * u))
+                drawRect(Color(0xFF6B4226), Offset(wx + 2f * u, wy + 15f * u), Size(12f * u, 1f * u))
+            }
         }
     }
 

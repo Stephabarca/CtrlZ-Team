@@ -18,6 +18,8 @@ object SummaryStrings {
     fun delta(value: Int) = if (value > 0) "+$value" else "$value"
     fun change(before: Int, after: Int) = "$before → $after"
     fun score(score: Int) = "Puntaje: $score / 100"
+    fun building(rounds: Int, correct: Int, errors: Int, missed: Int, bestStreak: Int) =
+        "Fogatas $rounds · Piezas bien $correct · Errores $errors · Sin tiempo $missed · Mejor racha $bestStreak"
     fun catches(perfect: Int, good: Int, weak: Int, lost: Int, early: Int) =
         "Perfectas $perfect · Buenas $good · Pequeñas $weak · Perdidas $lost · Antes de tiempo $early"
 }

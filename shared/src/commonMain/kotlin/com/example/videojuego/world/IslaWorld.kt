@@ -53,6 +53,20 @@ object IslaWorld {
                 "Gracias por saludar. Ahora necesito un rato tranquilo.",
                 "Las rocas del norte sirven para sacar carbón, por si te interesa.",
             ),
+            dayLines = mapOf(
+                2 to listOf(
+                    "Hoy ando buscando buena madera. Los troncos del sendero son firmes.",
+                    "El techo de la cabaña gotea. No es urgente, pero prefiero arreglarlo antes de que llueva.",
+                    "Si me ayudas, bien. Si prefieres hacer otra cosa, también está bien.",
+                    "Anoche dormí mejor. No sé por qué te lo cuento.",
+                ),
+            ),
+            memoryLines = listOf(
+                "n1_riesgo" to "Ayer, mientras hablabas con Valentina, algo no me cuadró. Prefiero decírtelo directo y sin drama.",
+                "n1_sana" to "Anoche te vi hablar con Valentina. La escuchaste sin interrumpir. Eso se nota, aunque no lo diga mucho.",
+                "pesca_buena" to "Vi el pescado que trajeron anoche. Se nota que tienes paciencia. No es fácil esperar sin apurar.",
+                "pesca_floja" to "Anoche casi no pescaron nada, ¿no? Pasa. Un día malo no define nada.",
+            ),
         ),
         NpcData(
             id = "lila", name = "Lila", speaker = Speaker.LILA,
@@ -66,6 +80,12 @@ object IslaWorld {
         ),
     )
 
+    /**
+     * Árboles del sendero que, desde el día 2, dan madera en vez de cocos. Están marcados con un tronco en la base.
+     * Hay uno más de los que pide el objetivo (3) para que sobre.
+     */
+    val woodTrees: Set<Pair<Int, Int>> = setOf(9 to 4, 17 to 3, 13 to 6, 5 to 6)
+
     /** Controlador con la isla y la cabaña. Es lo que usa el juego. */
     fun newController() = WorldController(
         map = map,
@@ -75,6 +95,7 @@ object IslaWorld {
         indoorMap = CabinWorld.map,
         indoorStartX = CabinWorld.START_X,
         indoorStartY = CabinWorld.START_Y,
+        woodTrees = woodTrees,
     )
 
     fun npc(id: String): NpcData? = npcs.firstOrNull { it.id == id }

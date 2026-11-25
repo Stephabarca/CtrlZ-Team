@@ -46,7 +46,7 @@ object FinaleStrings {
 
     private fun partnerLines(id: String): List<FinaleLine> = when (id) {
         "valentina" -> listOf(
-            FinaleLine("valentina", "Cuando todo parecía perdido, siempre fuiste tú el que se quedó a mi lado."),
+            FinaleLine("valentina", "Cuando todo parecía perdido, siempre fuiste tú quien se quedó a mi lado."),
             FinaleLine("valentina", "Cuando lleguemos a tierra... no quiero que esto se acabe."),
         )
         "lucas" -> listOf(

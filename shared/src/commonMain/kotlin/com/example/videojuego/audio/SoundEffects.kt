@@ -25,7 +25,7 @@ enum class SoundEffect(val path: String) {
      */
     FAIL("files/sounds/fail_sound.wav"),
 
-    /** Fogata (Noche 2): se acertó la combinación completa. */
+    /** Fogata (Noche 2): se acertó la combinación completa. Final: el corazón de la ruleta se detiene. */
     SUCCESS("files/sounds/success_sound.wav"),
 
     /** Hydro Hopper (Noche 3): la balsa salta. */

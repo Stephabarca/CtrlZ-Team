@@ -30,6 +30,11 @@ class MusicRulesTest {
     }
 
     @Test
+    fun finale_playsTheSea() {
+        assertEquals(MusicTrack.SEA, MusicRules.trackFor("finale"))
+    }
+
+    @Test
     fun otherScreens_areSilent() {
         // "splash": la animación de inicio trae su propio sonido; la música del menú empieza al terminar.
         for (s in listOf("splash", "intro", "fishing", "fogata", "summary")) {

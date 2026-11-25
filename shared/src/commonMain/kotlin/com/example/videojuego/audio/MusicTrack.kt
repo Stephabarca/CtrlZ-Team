@@ -15,7 +15,10 @@ enum class MusicTrack(val path: String) {
     /** Tic tac del reloj durante la ronda de preguntas. */
     ROUND_CLOCK("files/sounds/round_clock.wav"),
 
-    /** Olas del mar abierto durante Hydro Hopper (Noche 3). Lo controla la pantalla del minijuego. */
+    /**
+     * Olas del mar abierto: durante Hydro Hopper (Noche 3, lo controla la pantalla del minijuego) y en la escena
+     * final en la cubierta del barco.
+     */
     SEA("files/sounds/sea_sound.wav"),
 }
 
@@ -23,7 +26,7 @@ enum class MusicTrack(val path: String) {
 object MusicRules {
     /**
      * Menú y créditos usan la música del menú; el mapa, el ambiente de playa de día o de noche según [phase];
-     * la ronda de preguntas, el reloj. Ajustes sigue con lo que suene en la pantalla desde la que se abrió
+     * la ronda de preguntas, el reloj; el final en el barco, las olas del mar. Ajustes sigue con lo que suene en la pantalla desde la que se abrió
      * ([settingsReturn]), para no empezar la música del menú en pleno juego.
      */
     fun trackFor(screen: String, settingsReturn: String = "menu", phase: DayPhase = DayPhase.DAY): MusicTrack? =
@@ -31,6 +34,7 @@ object MusicRules {
             "menu", "credits" -> MusicTrack.MENU
             "world" -> if (phase == DayPhase.NIGHT) MusicTrack.BEACH_NIGHT else MusicTrack.BEACH_DAY
             "round" -> MusicTrack.ROUND_CLOCK
+            "finale" -> MusicTrack.SEA
             "settings" -> if (settingsReturn == "settings") null else trackFor(settingsReturn, phase = phase)
             else -> null
         }

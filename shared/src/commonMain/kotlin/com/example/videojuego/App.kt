@@ -12,6 +12,7 @@ import com.example.videojuego.data.GameServices
 import com.example.videojuego.data.content.GameContent
 import com.example.videojuego.data.rules.ProgressRules
 import com.example.videojuego.data.rules.WorldRewards
+import com.example.videojuego.data.save.GamePhase
 import com.example.videojuego.data.save.GameSettings
 import com.example.videojuego.data.save.LoadResult
 import com.example.videojuego.data.save.WorldSave
@@ -303,6 +304,16 @@ fun App() {
                         tieBreak = tie,
                         startAffinity = start,
                     )
+                }
+                // La historia terminó: se guarda la partida como terminada para que el menú ya no ofrezca
+                // CONTINUAR (si no, volvería al mapa después de la noche 3).
+                LaunchedEffect(Unit) {
+                    if (c != null && current != null && current.phase != GamePhase.ENDING) {
+                        val done = ProgressRules.finish(c, current)
+                        save = done
+                        GameServices.saves.save(done)
+                        loadResult = LoadResult.Loaded(done)
+                    }
                 }
                 FinaleScreen(result = result, onFinished = { screen = "credits" })
             }

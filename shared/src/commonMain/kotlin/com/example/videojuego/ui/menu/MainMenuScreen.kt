@@ -101,7 +101,8 @@ fun MainMenuScreen(
                     )
                     else -> {
                         if (info.corrupt) NoticePanel(MenuStrings.CorruptTitle, MenuStrings.CorruptBody)
-                        if (info.canContinue) info.description?.let { StatusLabel(it) }
+                        // "Día 2" con una partida en curso, o "Partida terminada" después del final.
+                        info.description?.let { StatusLabel(it) }
                         RopedLogs(
                             buildList<@Composable () -> Unit> {
                                 if (info.canContinue) add { ActionButton(text = MenuStrings.Continue, onClick = onContinue, minWidth = MENU_BUTTON_WIDTH) }

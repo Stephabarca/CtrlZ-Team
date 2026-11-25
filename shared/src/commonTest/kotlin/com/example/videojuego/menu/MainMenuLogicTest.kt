@@ -1,5 +1,6 @@
 package com.example.videojuego.menu
 
+import com.example.videojuego.data.save.GamePhase
 import com.example.videojuego.data.save.LoadResult
 import com.example.videojuego.data.save.SaveGame
 import com.example.videojuego.data.save.WorldSave
@@ -47,6 +48,16 @@ class MainMenuLogicTest {
         assertTrue(MainMenuLogic.info(LoadResult.Loaded(SaveGame())).newGameNeedsConfirmation)
         assertFalse(MainMenuLogic.info(LoadResult.NoSave).newGameNeedsConfirmation)
         assertFalse(MainMenuLogic.info(LoadResult.Corrupt).newGameNeedsConfirmation)
+    }
+
+    @Test
+    fun aFinishedGame_cannotBeContinuedAndStartsOverWithoutAsking() {
+        val save = SaveGame(phase = GamePhase.ENDING, world = WorldSave(day = 3))
+        val info = MainMenuLogic.info(LoadResult.Loaded(save))
+        assertFalse(info.canContinue)
+        assertFalse(info.corrupt)
+        assertFalse(info.newGameNeedsConfirmation)
+        assertEquals(MainMenuLogic.FINISHED_GAME, info.description)
     }
 
     @Test

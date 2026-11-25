@@ -11,18 +11,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.videojuego.data.GameServices
 import com.example.videojuego.data.content.GameContent
 import com.example.videojuego.data.rules.ProgressRules
-import com.example.videojuego.data.rules.WorldRewards
 import com.example.videojuego.data.save.GameSettings
 import com.example.videojuego.data.save.LoadResult
 import com.example.videojuego.data.save.WorldSave
 import com.example.videojuego.data.save.SaveGame
 import com.example.videojuego.menu.MainMenuLogic
-import com.example.videojuego.minigame.build.BuildGame
-import com.example.videojuego.minigame.build.BuildStats
 import com.example.videojuego.minigame.fishing.FishingStats
 import com.example.videojuego.summary.NightSummary
 import com.example.videojuego.summary.NightSummaryBuilder
-import com.example.videojuego.ui.build.BuildScreen
 import com.example.videojuego.ui.credits.CreditsScreen
 import com.example.videojuego.ui.fishing.FishingScreen
 import com.example.videojuego.ui.intro.IntroScreen
@@ -33,7 +29,6 @@ import com.example.videojuego.ui.summary.NightSummaryScreen
 import com.example.videojuego.ui.theme.IslaPerdidaTheme
 import com.example.videojuego.ui.world.WorldScreen
 import com.example.videojuego.world.IslaWorld
-import com.example.videojuego.world.MemoryFlags
 
 /** "#CAD988" -> Color. Si el texto no es válido se usa gris. */
 private fun parseColor(hex: String): Color =
@@ -58,7 +53,6 @@ fun App() {
         var save by remember { mutableStateOf<SaveGame?>(null) }
         var nightStartSave by remember { mutableStateOf<SaveGame?>(null) }
         var fishing by remember { mutableStateOf<FishingStats?>(null) }
-        var building by remember { mutableStateOf<BuildStats?>(null) }
         var summary by remember { mutableStateOf<NightSummary?>(null) }
 
         // Al abrir el juego: carga el contenido y lee la partida guardada para el menú.
@@ -68,7 +62,7 @@ fun App() {
             loadResult = GameServices.saves.load()
         }
 
-        fun showSummary(c: GameContent, endSave: SaveGame, stats: FishingStats?, buildStats: BuildStats? = null) {
+        fun showSummary(c: GameContent, endSave: SaveGame, stats: FishingStats?) {
             val night = c.nights.first { it.id == nightId }
             summary = NightSummaryBuilder.build(
                 content = c,
@@ -76,7 +70,6 @@ fun App() {
                 saveAtNightStart = nightStartSave ?: ProgressRules.newGame(c),
                 saveAtEnd = endSave,
                 fishing = stats,
-                building = buildStats,
             )
             screen = "summary"
         }
@@ -89,7 +82,6 @@ fun App() {
                     if (loaded != null) {
                         save = loaded
                         world.restore(loaded.world ?: WorldSave())
-                        world.setMemory(MemoryFlags.from(loaded))
                         screen = "world"
                     }
                 },
@@ -100,10 +92,8 @@ fun App() {
                     save = null
                     nightStartSave = null
                     fishing = null
-                    building = null
                     summary = null
                     world.restore(WorldSave())
-                    world.setMemory(emptySet())
                     screen = "intro"
                 },
                 onSettings = {
@@ -132,20 +122,10 @@ fun App() {
                     nightId = id
                     nightStartSave = save
                     fishing = null
-                    building = null
                     screen = "round"
                 },
                 onGift = { gift ->
-                    // Un regalo suma un poco de afinidad (+1 o +3). Se guarda al dormir en la cama.
-                    content?.let { c ->
-                        save = WorldRewards.addAffinity(c, save ?: ProgressRules.newGame(c), gift.npcId, gift.affinityDelta)
-                    }
-                },
-                onGoalDone = { goal ->
-                    // Ayudar con el objetivo del día suma lo mismo que un regalo.
-                    content?.let { c ->
-                        save = WorldRewards.addAffinity(c, save ?: ProgressRules.newGame(c), goal.npcId, goal.affinityDelta)
-                    }
+                    // TODO: sumar gift.affinityDelta a la afinidad de gift.npcId (sistema de afinidad)
                 },
                 onBackToMenu = {
                     // Se vuelve a leer el guardado para que el menú muestre CONTINUAR con lo último que se guardó.
@@ -174,9 +154,8 @@ fun App() {
                     val night = c?.nights?.firstOrNull { it.id == nightId }
                     when {
                         c == null -> screen = "world"
-                        // Noche 1: pesca. Noche 2: armar la fogata. La noche 3 (memoria) aún va directo al resumen.
+                        // Por ahora solo la noche 1 tiene minijuego (pesca); las demás van directo al resumen.
                         night?.minigameId == "pesca" -> screen = "fishing"
-                        night?.minigameId == "fogata" -> screen = "build"
                         else -> showSummary(c, result.save, null)
                     }
                 },
@@ -208,37 +187,11 @@ fun App() {
                 }
             }
 
-            "build" -> {
-                val c = content
-                val night = c?.nights?.firstOrNull { it.id == nightId }
-                val current = save
-                if (c != null && night != null && current != null) {
-                    val minigame = c.minigame(night.minigameId)
-                    val character = c.character(night.characterId)
-                    BuildScreen(
-                        characterName = character.name.substringBefore(' '),
-                        characterColor = parseColor(character.accentColor),
-                        characterId = night.characterId,
-                        durationSec = minigame.durationSec,
-                        level = BuildGame.levelFor(minigame.difficulty),
-                        onFinished = { stats ->
-                            val updated = ProgressRules.recordMinigame(c, current, minigame, stats.score)
-                            save = updated
-                            GameServices.saves.save(updated)
-                            building = stats
-                            showSummary(c, updated, null, stats)
-                        },
-                    )
-                }
-            }
-
             else -> summary?.let { s ->
                 NightSummaryScreen(
                     summary = s,
                     onContinue = {
-                        // Amanece: los personajes recuerdan lo de anoche (respuestas y minijuego).
-                        world.setMemory(MemoryFlags.from(save))
-                        // Día nuevo. Después de la noche 3 devuelve false (aquí iría el final del juego).
+                        // Amanece: día nuevo. Después de la noche 3 devuelve false (aquí iría el final del juego).
                         world.startNextDay()
                         screen = "world"
                     },

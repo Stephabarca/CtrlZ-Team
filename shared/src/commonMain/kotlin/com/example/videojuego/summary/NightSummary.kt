@@ -4,7 +4,6 @@ import com.example.videojuego.data.content.GameContent
 import com.example.videojuego.data.content.NightData
 import com.example.videojuego.data.rules.ProgressRules
 import com.example.videojuego.data.save.SaveGame
-import com.example.videojuego.minigame.build.BuildStats
 import com.example.videojuego.minigame.fishing.FishingStats
 
 /** Una pregunta de la ronda, con lo que respondió el jugador y por qué importa. */
@@ -24,11 +23,8 @@ data class MinigameReview(
     val name: String,
     val score: Int,
     val affinityGranted: Int,
+    val stats: FishingStats,
     val tips: List<String>,
-    /** Resultado de la pesca (noche 1), si ese fue el minijuego. */
-    val fishing: FishingStats? = null,
-    /** Resultado de armar la fogata (noche 2), si ese fue el minijuego. */
-    val building: BuildStats? = null,
 )
 
 data class NightSummary(
@@ -65,7 +61,6 @@ object NightSummaryBuilder {
         saveAtEnd: SaveGame,
         fishing: FishingStats?,
         timeoutMessage: String = DEFAULT_TIMEOUT_TIP,
-        building: BuildStats? = null,
     ): NightSummary {
         val character = content.character(night.characterId)
         val start = content.config.startAffinity
@@ -93,15 +88,10 @@ object NightSummaryBuilder {
         }
         val minigameData = content.minigames.firstOrNull { it.id == night.minigameId }
         val granted = saveAtEnd.minigameResults.lastOrNull { it.minigameId == night.minigameId }?.affinityGranted ?: 0
-        val minigame = when {
-            minigameData == null -> null
-            fishing != null -> MinigameReview(
-                minigameData.name, fishing.score, granted, fishingTips(fishing), fishing = fishing,
-            )
-            building != null -> MinigameReview(
-                minigameData.name, building.score, granted, buildingTips(building), building = building,
-            )
-            else -> null
+        val minigame = if (fishing != null && minigameData != null) {
+            MinigameReview(minigameData.name, fishing.score, granted, fishing, fishingTips(fishing))
+        } else {
+            null
         }
 
         val improvements = reviews.filter { it.healthy != true }.map { it.feedback }.distinct()
@@ -150,26 +140,6 @@ object NightSummaryBuilder {
             add("No hubo ningún intento. La próxima vez toca JALAR cuando el corcho se hunda.")
         }
         if (isEmpty()) add("Pesca tranquila y sin errores. Buen trabajo.")
-    }
-
-    /** Consejos de armar la fogata. Hablan de escuchar lo que el otro pide y de colaborar a su ritmo. */
-    fun buildingTips(stats: BuildStats): List<String> = buildList {
-        if (stats.decoys > 0) {
-            add("Usaste ${stats.decoys} pieza${if (stats.decoys == 1) "" else "s"} trampa. Escuchar bien antes de actuar evita errores que el otro no pidió.")
-        }
-        if (stats.wrong > 0) {
-            add("Pusiste ${stats.wrong} pieza${if (stats.wrong == 1) "" else "s"} que no eran las que Lucas pidió. Hacer lo que uno cree mejor, sin fijarse en lo que el otro necesita, no ayuda.")
-        }
-        if (stats.missed > 0) {
-            add("Lucas tuvo que poner ${stats.missed} pieza${if (stats.missed == 1) "" else "s"} solo. Ir a tu ritmo está bien, pero en equipo hay que avisar si te cuesta seguirlo.")
-        }
-        if (stats.rounds >= 3) {
-            add("Armaron ${stats.rounds} fogatas juntos, con una racha de ${stats.bestStreak}. Coordinarse con el otro funciona.")
-        }
-        if (stats.correct == 0) {
-            add("No colocaste ninguna pieza. La próxima vez toca la que Lucas te pide.")
-        }
-        if (isEmpty()) add("Construyeron juntos sin errores. Buen trabajo.")
     }
 
     private fun times(n: Int) = if (n == 1) "1 vez" else "$n veces"

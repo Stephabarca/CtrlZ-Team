@@ -30,6 +30,11 @@ class MusicRulesTest {
     }
 
     @Test
+    fun buildMinigame_playsTheNightBeach() {
+        assertEquals(MusicTrack.BEACH_NIGHT, MusicRules.trackFor("build"))
+    }
+
+    @Test
     fun finale_playsTheSea() {
         assertEquals(MusicTrack.SEA, MusicRules.trackFor("finale"))
     }

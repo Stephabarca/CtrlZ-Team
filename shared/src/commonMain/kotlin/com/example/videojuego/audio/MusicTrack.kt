@@ -29,7 +29,7 @@ enum class MusicTrack(val path: String) {
 object MusicRules {
     /**
      * El menú usa su música y los créditos su canción; el mapa, el ambiente de playa de día o de noche según [phase];
-     * la ronda de preguntas, el reloj; el final en el barco, las olas del mar. Ajustes sigue con lo que suene en la pantalla desde la que se abrió
+     * la ronda de preguntas, el reloj; la fogata, la playa de noche; el final en el barco, las olas del mar. Ajustes sigue con lo que suene en la pantalla desde la que se abrió
      * ([settingsReturn]), para no empezar la música del menú en pleno juego.
      */
     fun trackFor(screen: String, settingsReturn: String = "menu", phase: DayPhase = DayPhase.DAY): MusicTrack? =
@@ -38,6 +38,8 @@ object MusicRules {
             "credits" -> MusicTrack.CREDITS
             "world" -> if (phase == DayPhase.NIGHT) MusicTrack.BEACH_NIGHT else MusicTrack.BEACH_DAY
             "round" -> MusicTrack.ROUND_CLOCK
+            // Fogata (noche 2): el ambiente de la playa de noche mientras arman el fuego.
+            "build" -> MusicTrack.BEACH_NIGHT
             "finale" -> MusicTrack.SEA
             "settings" -> if (settingsReturn == "settings") null else trackFor(settingsReturn, phase = phase)
             else -> null

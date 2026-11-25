@@ -51,6 +51,8 @@ data class NightSummary(
     /** Lo que conviene mejorar: la retroalimentación de las respuestas de riesgo o sin responder. */
     val improvements: List<String>,
     val headline: String,
+    /** 0 a 1, afinidad con la que empezó la noche: sirve para animar los corazones de "antes" a "después". */
+    val affinityBeforeFraction: Float = affinityFraction,
 ) {
     val totalAffinityChange: Int get() = affinityAfter - affinityBefore
 }
@@ -127,6 +129,7 @@ object NightSummaryBuilder {
             learning = character.learning,
             improvements = improvements,
             headline = headline(reviews.size, healthy, after - before, character.name),
+            affinityBeforeFraction = fraction(before, content),
         )
     }
 

@@ -62,6 +62,7 @@ import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 import com.example.videojuego.ui.theme.accent
 import com.example.videojuego.ui.theme.onAccent
+import com.example.videojuego.diary.DiaryEntry
 import com.example.videojuego.world.CabinWorld
 import com.example.videojuego.world.DayPhase
 import com.example.videojuego.world.Direction
@@ -74,6 +75,7 @@ import com.example.videojuego.world.SleepCheck
 import com.example.videojuego.world.NpcData
 import com.example.videojuego.world.TileType
 import com.example.videojuego.world.WorldController
+import com.example.videojuego.world.Weather
 import com.example.videojuego.world.WorldMap
 import com.example.videojuego.world.cameraOrigin
 import com.example.videojuego.world.darknessAt
@@ -122,6 +124,7 @@ private class Actor(
     val name: String?,
     val facing: Direction,
     val showMarker: Boolean,
+    val badge: Badge? = null,
 )
 
 /**
@@ -152,6 +155,8 @@ fun WorldScreen(
     onSleep: () -> Unit = {},
     onBackToMenu: (() -> Unit)? = null,
     onOpenSettings: (() -> Unit)? = null,
+    /** Páginas del diario de la isla; se piden al abrirlo para que reflejen el último progreso. */
+    diary: (() -> List<DiaryEntry>)? = null,
     controller: WorldController = remember { IslaWorld.newController() },
 ) {
     val state by controller.state.collectAsState()
@@ -162,12 +167,24 @@ fun WorldScreen(
     var toast by remember { mutableStateOf<String?>(null) }
     var chestOpen by remember { mutableStateOf(false) }
     var pauseOpen by remember { mutableStateOf(false) }
+    var diaryOpen by remember { mutableStateOf(false) }
     var infoText by remember { mutableStateOf<String?>(null) }
     /** 0 = despierto, 1 = durmiendo, 2 = partida guardada. */
     var sleepStage by remember { mutableIntStateOf(0) }
     var sleepRequest by remember { mutableIntStateOf(0) }
-    val overlayOpen = chat != null || chestOpen || pauseOpen || infoText != null || sleepStage != 0
+    val overlayOpen = chat != null || chestOpen || pauseOpen || diaryOpen || infoText != null || sleepStage != 0
     var hasMoved by remember { mutableStateOf(false) }
+
+    // Avisos flotantes sobre el personaje: "+1" del objeto recogido y corazones al regalar o ayudar.
+    val pops = rememberPopState()
+    var lastBag by remember { mutableStateOf(state.inventory) }
+    LaunchedEffect(state.inventory) {
+        ItemType.entries.forEach { item ->
+            val gained = (state.inventory[item] ?: 0) - (lastBag[item] ?: 0)
+            if (gained > 0) pops.item(item, gained)
+        }
+        lastBag = state.inventory
+    }
 
     val keyboard = Offset(
         (if (keys.any { it in MOVE_RIGHT }) 1f else 0f) - (if (keys.any { it in MOVE_LEFT }) 1f else 0f),
@@ -314,8 +331,18 @@ fun WorldScreen(
 
     val location = state.location
     val activeMap = controller.mapFor(location)
-    val actors = controller.npcsFor(location).map {
-        Actor(it.centerX, it.centerY, it.speaker.accent(), HAIR, it.name, Direction.DOWN, false)
+    val outdoorsByDay = location == Location.OUTSIDE && !state.isNight
+    val goalNow = controller.currentGoal(state)
+    val actors = controller.npcsFor(location).map { npc ->
+        // Señales sobre el personaje (solo de día y afuera): objetivo pendiente/listo o regalo disponible.
+        val badge = if (!outdoorsByDay) null else when {
+            goalNow != null && goalNow.npcId == npc.id ->
+                if (state.count(goalNow.item) >= goalNow.amount) Badge(BadgeKind.GOAL_READY, goalNow.item)
+                else Badge(BadgeKind.GOAL_PENDING, goalNow.item)
+            npc.id !in state.giftedNpcIds && ItemType.entries.any { state.count(it) > 0 } -> Badge(BadgeKind.GIFT, null)
+            else -> null
+        }
+        Actor(npc.centerX, npc.centerY, npc.speaker.accent(), HAIR, npc.name, Direction.DOWN, false, badge)
     } + Actor(state.playerX, state.playerY, IslaColors.Primary, HAIR, null, state.facing, false)
 
     Box(
@@ -373,7 +400,9 @@ fun WorldScreen(
                 if (location == Location.CABIN) 0f else darknessAt(state.phase, state.dayRemainingMs),
                 state.isNight && location == Location.OUTSIDE,
                 spritePainters,
+                outdoors = location == Location.OUTSIDE,
                 woodMarks = if (location == Location.OUTSIDE && state.day >= WorldController.WOOD_FROM_DAY) controller.woodTrees - state.harvested else emptySet(),
+                pops = pops,
             )
         }
 
@@ -514,6 +543,7 @@ fun WorldScreen(
                                 onClick = {
                                     val result = controller.deliverGoal(npc.id)
                                     if (result != null) {
+                                        pops.heart(result.affinityDelta)
                                         onGoalDone(result)
                                         chat = dialog.copy(text = result.line)
                                     }
@@ -526,6 +556,7 @@ fun WorldScreen(
                                 onClick = {
                                     val result = controller.giveGift(npc.id, item)
                                     if (result != null) {
+                                        pops.heart(result.affinityDelta)
                                         onGift(result)
                                         chat = dialog.copy(text = result.reaction)
                                     }
@@ -549,11 +580,19 @@ fun WorldScreen(
                     Text("II", color = IslaColors.Ink, fontFamily = PixelFontFamily, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
-            if (pauseOpen && onBackToMenu != null) {
+            if (pauseOpen && !diaryOpen && onBackToMenu != null) {
                 PausePanel(
                     onResume = { pauseOpen = false },
                     onSettings = onOpenSettings,
                     onBackToMenu = onBackToMenu,
+                    onDiary = if (diary != null) ({ diaryOpen = true }) else null,
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            }
+            if (diaryOpen && diary != null) {
+                DiaryPanel(
+                    entries = remember(diaryOpen) { diary() },
+                    onClose = { diaryOpen = false },
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
@@ -585,6 +624,8 @@ private fun DrawScope.drawWorld(
     spritePainters: Map<String, Painter> = emptyMap(),
     /** Árboles de madera que todavía no se recogieron: se dibujan con un tronco en la base. */
     woodMarks: Set<Pair<Int, Int>> = emptySet(),
+    pops: PopState? = null,
+    outdoors: Boolean = false,
 ) {
     val tile = floor(size.width / VIEW_TILES_X).coerceAtLeast(16f)
     val viewW = size.width / tile
@@ -631,8 +672,13 @@ private fun DrawScope.drawWorld(
             null -> spritePainters["prota_${actor.facing.name}"]
             else -> null
         }
-        drawPerson(centerX, feetY, tile, actor, painter)
+        // De día y afuera, los personajes hacen sus cosas: respiran, barren, juntan leña o miran el mar.
+        val alive = outdoors && !night && actor.name != null
+        val bob = if (alive) idleBob(actor.name, timeMs, tile) else 0f
+        drawPerson(centerX, feetY - bob, tile, actor, painter)
+        if (alive) drawNpcActivity(actor.name, centerX, feetY, tile, timeMs)
         if (actor.name != null) drawLabel(measurer, actor.name, centerX, feetY - tile * 1.8f, labelStyle)
+        actor.badge?.let { if (!actor.showMarker) drawBadge(it, centerX, feetY - tile * 2.9f, tile, timeMs) }
         if (actor.showMarker) {
             val bob = if ((timeMs / 350L) % 2L == 0L) 0f else tile / 16f
             drawMarker(measurer, centerX, feetY - tile * 2.2f + bob, tile, markerStyle)
@@ -656,6 +702,15 @@ private fun DrawScope.drawWorld(
                 }
             }
         }
+    }
+
+    // Olas, hojas, luciérnagas y humo.
+    drawAmbient(map, camX, camY, tile, timeMs, darkness, outdoors)
+    if (outdoors) drawRain(Weather.rain(timeMs), Weather.wind(timeMs), timeMs, tile)
+
+    // "+1 madera", "+3 corazón"... sobre la cabeza del personaje.
+    if (pops != null && pops.pops.isNotEmpty()) {
+        drawPops(pops, screenX(playerX), screenY(playerY) - tile * 0.6f, tile, measurer, markerStyle)
     }
 }
 

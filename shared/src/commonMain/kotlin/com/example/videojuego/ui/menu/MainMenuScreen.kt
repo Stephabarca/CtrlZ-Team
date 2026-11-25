@@ -65,6 +65,8 @@ fun MainMenuScreen(
     modifier: Modifier = Modifier,
     onSettings: () -> Unit = {},
     onCredits: () -> Unit = {},
+    /** Abre la galería de finales. Si es null, el botón no se muestra. */
+    onEndings: (() -> Unit)? = null,
 ) {
     var confirming by remember { mutableStateOf(false) }
     var time by remember { mutableLongStateOf(0L) }
@@ -108,6 +110,7 @@ fun MainMenuScreen(
                         )
                         ActionButton(text = MenuStrings.Settings, onClick = onSettings)
                         ActionButton(text = MenuStrings.Credits, onClick = onCredits)
+                        if (onEndings != null) ActionButton(text = MenuStrings.Endings, onClick = onEndings)
                     }
                 }
             }

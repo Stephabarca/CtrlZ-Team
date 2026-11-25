@@ -52,3 +52,38 @@ class FinaleTest {
         assertFalse(FinaleRoll.landed(FinaleRoll.spinMs - 1))
     }
 }
+
+class FriendshipEndingTest {
+    @Test
+    fun lowCompatibilityMeansFriendship() {
+        val r = FinaleRules.decide(mapOf("valentina" to 40, "lucas" to 55, "lila" to 30))
+        assertTrue(r.friendship)
+        assertEquals("amistad", r.endingId)
+        assertEquals("lucas", r.partnerId)
+    }
+
+    @Test
+    fun highCompatibilityMeansRomance() {
+        val r = FinaleRules.decide(mapOf("valentina" to 40, "lucas" to FinaleRules.ROMANCE_MIN, "lila" to 30))
+        assertFalse(r.friendship)
+        assertEquals("lucas", r.endingId)
+    }
+
+    @Test
+    fun forcedResultsMatchTheRequestedEnding() {
+        FinaleRules.ORDER.forEach {
+            val r = FinaleRules.forced(it)
+            assertEquals(it, r.endingId)
+            assertEquals(it, r.partnerId)
+            assertFalse(r.friendship)
+        }
+        val f = FinaleRules.forced("amistad")
+        assertTrue(f.friendship)
+        assertEquals("amistad", f.endingId)
+    }
+
+    @Test
+    fun fourEndingsInTheGallery() {
+        assertEquals(listOf("valentina", "lucas", "lila", "amistad"), FinaleRules.ALL_ENDINGS)
+    }
+}

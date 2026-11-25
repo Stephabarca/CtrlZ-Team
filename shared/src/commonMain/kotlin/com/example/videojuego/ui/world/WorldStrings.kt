@@ -35,6 +35,9 @@ object WorldStrings {
     const val LeaveYes = "SÍ, VOLVER"
     const val LeaveNo = "CANCELAR"
 
+    fun goal(title: String, have: Int, need: Int) = "OBJETIVO: $title (${have.coerceAtMost(need)}/$need)"
+    fun deliver(itemLabel: String, need: Int) = "ENTREGAR $need ${itemLabel.uppercase()}"
+
     fun gift(itemLabel: String, count: Int) = "REGALAR ${itemLabel.uppercase()} (x$count)"
     fun picked(itemLabel: String) = "+1 ${itemLabel.uppercase()}"
 

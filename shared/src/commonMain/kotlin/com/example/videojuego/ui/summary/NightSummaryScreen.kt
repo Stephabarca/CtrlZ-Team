@@ -144,6 +144,9 @@ private fun MinigameCard(review: MinigameReview) {
         review.fishingStats?.let { s ->
             Body(SummaryStrings.catches(s.perfect, s.good, s.weak, s.lost, s.early))
         }
+        review.building?.let { b ->
+            Body(SummaryStrings.building(b.rounds, b.correct, b.wrong + b.decoys, b.missed, b.bestStreak))
+        }
         review.tips.forEach { Body("• $it") }
     }
 }

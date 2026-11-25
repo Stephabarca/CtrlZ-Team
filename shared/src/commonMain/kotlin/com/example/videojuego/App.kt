@@ -11,17 +11,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.videojuego.data.GameServices
 import com.example.videojuego.data.content.GameContent
 import com.example.videojuego.data.rules.ProgressRules
+import com.example.videojuego.data.rules.WorldRewards
 import com.example.videojuego.data.save.GameSettings
 import com.example.videojuego.data.save.LoadResult
 import com.example.videojuego.data.save.WorldSave
 import com.example.videojuego.data.save.SaveGame
+import com.example.videojuego.finale.FinaleRules
 import com.example.videojuego.menu.MainMenuLogic
+import com.example.videojuego.minigame.build.BuildGame
+import com.example.videojuego.minigame.build.BuildStats
 import com.example.videojuego.minigame.fishing.FishingStats
 import com.example.videojuego.minigame.hydrohopper.HydroHopperStats
 import com.example.videojuego.summary.NightSummary
 import com.example.videojuego.summary.NightSummaryBuilder
+import com.example.videojuego.ui.build.BuildScreen
 import com.example.videojuego.ui.credits.CreditsScreen
 import com.example.videojuego.ui.demo.HydroHopperDemo
+import com.example.videojuego.ui.finale.FinaleScreen
 import com.example.videojuego.ui.fishing.FishingScreen
 import com.example.videojuego.ui.intro.IntroScreen
 import com.example.videojuego.ui.menu.MainMenuScreen
@@ -37,6 +43,8 @@ import com.example.videojuego.ui.summary.NightSummaryScreen
 import com.example.videojuego.ui.theme.IslaPerdidaTheme
 import com.example.videojuego.ui.world.WorldScreen
 import com.example.videojuego.world.IslaWorld
+import com.example.videojuego.world.ItemType
+import com.example.videojuego.world.MemoryFlags
 
 /** "#CAD988" -> Color. Si el texto no es válido se usa gris. */
 private fun parseColor(hex: String): Color =
@@ -58,10 +66,11 @@ fun App() {
         // Contenido del juego (JSON), cargado una vez.
         var content by remember { mutableStateOf<GameContent?>(null) }
 
-        // Progreso: el actual, el de cuando empezó la noche (para el "antes y después") y el resultado de los minijuegos.
+        // Progreso: el actual, el de cuando empezó la noche (para el "antes y después") y el resultado de la pesca.
         var save by remember { mutableStateOf<SaveGame?>(null) }
         var nightStartSave by remember { mutableStateOf<SaveGame?>(null) }
         var fishing by remember { mutableStateOf<FishingStats?>(null) }
+        var building by remember { mutableStateOf<BuildStats?>(null) }
         var hydroHopper by remember { mutableStateOf<HydroHopperStats?>(null) }
         var summary by remember { mutableStateOf<NightSummary?>(null) }
 
@@ -75,7 +84,13 @@ fun App() {
         LaunchedEffect(Unit) { Sfx.preload() }
         Sfx.volume = settings.sfxVolume
 
-        fun showSummary(c: GameContent, endSave: SaveGame, stats: FishingStats? = null, hydroStats: HydroHopperStats? = null) {
+        fun showSummary(
+            c: GameContent,
+            endSave: SaveGame,
+            stats: FishingStats? = null,
+            buildStats: BuildStats? = null,
+            hydroStats: HydroHopperStats? = null,
+        ) {
             val night = c.nights.first { it.id == nightId }
             summary = NightSummaryBuilder.build(
                 content = c,
@@ -83,6 +98,7 @@ fun App() {
                 saveAtNightStart = nightStartSave ?: ProgressRules.newGame(c),
                 saveAtEnd = endSave,
                 fishing = stats,
+                building = buildStats,
                 hydroHopper = hydroStats,
             )
             screen = "summary"
@@ -105,6 +121,7 @@ fun App() {
                     if (loaded != null) {
                         save = loaded
                         world.restore(loaded.world ?: WorldSave())
+                        world.setMemory(MemoryFlags.from(loaded))
                         screen = "world"
                     }
                 },
@@ -115,8 +132,11 @@ fun App() {
                     save = null
                     nightStartSave = null
                     fishing = null
+                    building = null
+                    hydroHopper = null
                     summary = null
                     world.restore(WorldSave())
+                    world.setMemory(emptySet())
                     screen = "intro"
                 },
                 onSettings = {
@@ -145,10 +165,21 @@ fun App() {
                     nightId = id
                     nightStartSave = save
                     fishing = null
+                    building = null
+                    hydroHopper = null
                     screen = "round"
                 },
                 onGift = { gift ->
-                    // TODO: sumar gift.affinityDelta a la afinidad de gift.npcId (sistema de afinidad)
+                    // Un regalo suma un poco de afinidad (+1 o +3). Se guarda al dormir en la cama.
+                    content?.let { c ->
+                        save = WorldRewards.addAffinity(c, save ?: ProgressRules.newGame(c), gift.npcId, gift.affinityDelta)
+                    }
+                },
+                onGoalDone = { goal ->
+                    // Ayudar con el objetivo del día suma lo mismo que un regalo.
+                    content?.let { c ->
+                        save = WorldRewards.addAffinity(c, save ?: ProgressRules.newGame(c), goal.npcId, goal.affinityDelta)
+                    }
                 },
                 onBackToMenu = {
                     // Se vuelve a leer el guardado para que el menú muestre CONTINUAR con lo último que se guardó.
@@ -177,7 +208,9 @@ fun App() {
                     val night = c?.nights?.firstOrNull { it.id == nightId }
                     when {
                         c == null -> screen = "world"
+                        // Noche 1: pesca. Noche 2: armar la fogata. Noche 3: rescate en la balsa (Hydro Hopper).
                         night?.minigameId == "pesca" -> screen = "fishing"
+                        night?.minigameId == "fogata" -> screen = "build"
                         night?.minigameId == "hydrohopper" || night?.minigameId == "memoria" -> screen = "hydrohopper"
                         else -> showSummary(c, result.save, null)
                     }
@@ -204,7 +237,33 @@ fun App() {
                             save = updated
                             GameServices.saves.save(updated)
                             fishing = stats
+                            // Los pescados capturados se quedan en la mochila (y el sobrante en el cofre).
+                            world.addToBag(ItemType.FISH, stats.fishCaught)
                             showSummary(c, updated, stats)
+                        },
+                    )
+                }
+            }
+
+            "build" -> {
+                val c = content
+                val night = c?.nights?.firstOrNull { it.id == nightId }
+                val current = save
+                if (c != null && night != null && current != null) {
+                    val minigame = c.minigame(night.minigameId)
+                    val character = c.character(night.characterId)
+                    BuildScreen(
+                        characterName = character.name.substringBefore(' '),
+                        characterColor = parseColor(character.accentColor),
+                        characterId = night.characterId,
+                        durationSec = minigame.durationSec,
+                        level = BuildGame.levelFor(minigame.difficulty),
+                        onFinished = { stats ->
+                            val updated = ProgressRules.recordMinigame(c, current, minigame, stats.score)
+                            save = updated
+                            GameServices.saves.save(updated)
+                            building = stats
+                            showSummary(c, updated, null, stats)
                         },
                     )
                 }
@@ -224,19 +283,43 @@ fun App() {
                             save = updated
                             GameServices.saves.save(updated)
                             hydroHopper = stats
-                            showSummary(c, updated, null, stats)
+                            showSummary(c, updated, null, null, stats)
                         },
                     )
                 }
+            }
+
+            "finale" -> {
+                val c = content
+                val current = save
+                // Compatibilidad = afinidad de todo el juego; si empatan, gana quien tenga mejor minijuego.
+                val result = remember(current, c) {
+                    val start = c?.config?.startAffinity ?: 0
+                    val tie = c?.nights.orEmpty().associate { n ->
+                        n.characterId to (current?.minigameResults?.lastOrNull { it.minigameId == n.minigameId }?.score ?: 0)
+                    }
+                    FinaleRules.decide(
+                        affinity = current?.affinity.orEmpty(),
+                        tieBreak = tie,
+                        startAffinity = start,
+                    )
+                }
+                FinaleScreen(result = result, onFinished = { screen = "credits" })
             }
 
             else -> summary?.let { s ->
                 NightSummaryScreen(
                     summary = s,
                     onContinue = {
-                        // Amanece: día nuevo. Después de la noche 3 devuelve false (aquí iría el final del juego).
-                        world.startNextDay()
-                        screen = "world"
+                        // Amanece: los personajes recuerdan lo de anoche (respuestas y minijuego).
+                        world.setMemory(MemoryFlags.from(save))
+                        if (nightId == "night3") {
+                            // Fin de la noche 3: escena del barco y elección de pareja.
+                            screen = "finale"
+                        } else {
+                            world.startNextDay()
+                            screen = "world"
+                        }
                     },
                 )
             }

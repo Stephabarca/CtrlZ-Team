@@ -27,6 +27,8 @@ class WorldController(
     private val indoorMap: WorldMap? = null,
     private val indoorStartX: Float = 0f,
     private val indoorStartY: Float = 0f,
+    /** Árboles que dan madera desde el día [WOOD_FROM_DAY] (los demás dan cocos). */
+    val woodTrees: Set<Pair<Int, Int>> = emptySet(),
 ) {
     private val _state = MutableStateFlow(
         WorldState(
@@ -40,6 +42,15 @@ class WorldController(
     val state: StateFlow<WorldState> = _state.asStateFlow()
 
     private val chatCounters = mutableMapOf<String, Int>()
+
+    /** Banderas de lo que pasó la noche anterior (ver MemoryFlags). Las pone quien tiene el progreso. */
+    private var memory: Set<String> = emptySet()
+
+    /** "npc:día" ya contados: el recuerdo de la noche se dice solo la primera vez que se le habla en el día. */
+    private val memoryTold = mutableSetOf<String>()
+
+    /** Días cuyo pedido ya se explicó. */
+    private val goalAsked = mutableSetOf<Int>()
 
     /** Dónde estaba el jugador al entrar a la cabaña, para devolverlo al mismo sitio al salir. */
     private var returnX = startX
@@ -115,13 +126,60 @@ class WorldController(
     /** Objeto (puerta, cama, cofre, maleta) con el que se puede interactuar ahora, o null. */
     fun interactTile(): TileRef? = _state.value.nearTile
 
-    /** Siguiente frase de la conversación corta con [npcId]; da la vuelta al llegar al final. */
+    /** Pone las banderas de lo que pasó antes (se calculan del guardado con MemoryFlags.from). */
+    fun setMemory(flags: Set<String>) {
+        memory = flags
+    }
+
+    /**
+     * Siguiente frase de la conversación con [npcId]. Orden: el recuerdo de la noche anterior (una vez al día),
+     * el pedido del día si le toca a ese personaje (una vez) y luego la charla corta, que da la vuelta al final.
+     */
     fun talk(npcId: String): String? {
         val npc = npcs.firstOrNull { it.id == npcId } ?: return null
-        if (npc.chatLines.isEmpty()) return npc.idleLine
+        val s = _state.value
+        if (s.day >= 2 && memoryTold.add("$npcId:${s.day}")) {
+            npc.memoryLines.firstOrNull { it.first in memory }?.let { return it.second }
+        }
+        val goal = currentGoal(s)
+        if (goal != null && goal.npcId == npcId && goalAsked.add(goal.day)) return goal.askLine
+
+        val lines = npc.dayLines[s.day]?.takeIf { it.isNotEmpty() } ?: npc.chatLines
+        if (lines.isEmpty()) return npc.idleLine
         val index = chatCounters.getOrElse(npcId) { 0 }
         chatCounters[npcId] = index + 1
-        return npc.chatLines[index % npc.chatLines.size]
+        return lines[index % lines.size]
+    }
+
+    // ---------- Objetivo del día ----------
+
+    /** Objetivo de hoy que todavía no se cumple, o null. */
+    fun currentGoal(s: WorldState = _state.value): DayGoal? =
+        DayGoals.forDay(s.day)?.takeIf { s.day !in s.goalsDone }
+
+    /** Se puede entregar el objetivo a [npcId] ahora mismo: de día, cerca y con todo lo que pide. */
+    fun canDeliverGoal(npcId: String): Boolean {
+        val s = _state.value
+        val goal = currentGoal(s) ?: return false
+        return goal.npcId == npcId &&
+            s.phase == DayPhase.DAY &&
+            s.nearbyNpcId == npcId &&
+            s.count(goal.item) >= goal.amount
+    }
+
+    /**
+     * Entrega el objetivo: gasta lo pedido y lo da por cumplido. Devuelve null si no se puede (ver [canDeliverGoal]);
+     * si no, cuánta afinidad suma (aplicarla es responsabilidad de quien llama) y qué responde el personaje.
+     */
+    fun deliverGoal(npcId: String): GoalResult? {
+        if (!canDeliverGoal(npcId)) return null
+        val s = _state.value
+        val goal = currentGoal(s) ?: return null
+        _state.value = s.copy(
+            inventory = s.inventory + (goal.item to s.count(goal.item) - goal.amount),
+            goalsDone = s.goalsDone + goal.day,
+        )
+        return GoalResult(npcId, GiftRules.MAX_GIFT_DELTA, goal.doneLine)
     }
 
     // ---------- Regalos ----------
@@ -199,6 +257,23 @@ class WorldController(
         return nearChest(s) && s.inChest(item) > 0 && s.count(item) < MAX_PER_ITEM
     }
 
+    /**
+     * Mete [amount] de [item] en la mochila (hasta [MAX_PER_ITEM]); lo que no cabe va al cofre de la cabaña, y lo que
+     * tampoco cabe ahí se pierde. Sirve para los pescados que se capturan en el minijuego. Devuelve cuántos se guardaron.
+     */
+    fun addToBag(item: ItemType, amount: Int): Int {
+        if (amount <= 0) return 0
+        val s = _state.value
+        val toBag = minOf(amount, MAX_PER_ITEM - s.count(item)).coerceAtLeast(0)
+        val toChest = minOf(amount - toBag, CHEST_MAX_PER_ITEM - s.inChest(item)).coerceAtLeast(0)
+        if (toBag == 0 && toChest == 0) return 0
+        _state.value = s.copy(
+            inventory = s.inventory + (item to s.count(item) + toBag),
+            chest = s.chest + (item to s.inChest(item) + toChest),
+        )
+        return toBag + toChest
+    }
+
     fun deposit(item: ItemType): Boolean {
         if (!canDeposit(item)) return false
         val s = _state.value
@@ -240,6 +315,7 @@ class WorldController(
             bag = s.inventory.filterValues { it > 0 }.mapKeys { it.key.name },
             chest = s.chest.filterValues { it > 0 }.mapKeys { it.key.name },
             giftedNpcIds = s.giftedNpcIds.toList(),
+            goalsDone = s.goalsDone.toList(),
         )
     }
 
@@ -261,7 +337,10 @@ class WorldController(
             inventory = items(save.bag, MAX_PER_ITEM),
             chest = items(save.chest, CHEST_MAX_PER_ITEM),
             giftedNpcIds = save.giftedNpcIds.toSet(),
+            goalsDone = save.goalsDone.toSet(),
         )
+        memoryTold.clear()
+        goalAsked.clear()
     }
 
     // ---------- Noche y días ----------
@@ -326,7 +405,8 @@ class WorldController(
             for (ty in floor(y).toInt() - 1..floor(y).toInt() + 1) {
                 for (tx in floor(x).toInt() - 1..floor(x).toInt() + 1) {
                     val item = when (map.tileAt(tx, ty)) {
-                        TileType.TREE -> ItemType.COCONUT
+                        TileType.TREE ->
+                            if (result.day >= WOOD_FROM_DAY && (tx to ty) in woodTrees) ItemType.WOOD else ItemType.COCONUT
                         TileType.ROCK -> ItemType.COAL
                         else -> continue
                     }
@@ -416,6 +496,9 @@ class WorldController(
 
         /** Distancia máxima al borde de la puerta, cama, cofre o maleta para interactuar. */
         const val TILE_REACH = 0.55f
+
+        /** Desde este día los árboles marcados dan madera. */
+        const val WOOD_FROM_DAY = 2
 
         /** Cuántos objetos de cada tipo caben en el cofre. */
         const val CHEST_MAX_PER_ITEM = 99

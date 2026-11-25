@@ -4,6 +4,7 @@ import com.example.videojuego.data.content.GameContent
 import com.example.videojuego.data.content.NightData
 import com.example.videojuego.data.rules.ProgressRules
 import com.example.videojuego.data.save.SaveGame
+import com.example.videojuego.minigame.build.BuildStats
 import com.example.videojuego.minigame.fishing.FishingStats
 import com.example.videojuego.minigame.hydrohopper.HydroHopperStats
 
@@ -26,6 +27,8 @@ data class MinigameReview(
     val affinityGranted: Int,
     val tips: List<String>,
     val fishingStats: FishingStats? = null,
+    /** Resultado de armar la fogata (noche 2), si ese fue el minijuego. */
+    val building: BuildStats? = null,
 )
 
 data class NightSummary(
@@ -63,6 +66,7 @@ object NightSummaryBuilder {
         fishing: FishingStats? = null,
         hydroHopper: HydroHopperStats? = null,
         timeoutMessage: String = DEFAULT_TIMEOUT_TIP,
+        building: BuildStats? = null,
     ): NightSummary {
         val character = content.character(night.characterId)
         val start = content.config.startAffinity
@@ -93,6 +97,9 @@ object NightSummaryBuilder {
         val minigame = when {
             fishing != null && minigameData != null -> {
                 MinigameReview(minigameData.name, fishing.score, granted, fishingTips(fishing), fishing)
+            }
+            building != null && minigameData != null -> {
+                MinigameReview(minigameData.name, building.score, granted, buildingTips(building), building = building)
             }
             hydroHopper != null && minigameData != null -> {
                 MinigameReview(minigameData.name, hydroHopper.score, granted, hydroHopperTips(hydroHopper))
@@ -146,6 +153,26 @@ object NightSummaryBuilder {
             add("No hubo ningún intento. La próxima vez toca JALAR cuando el corcho se hunda.")
         }
         if (isEmpty()) add("Pesca tranquila y sin errores. Buen trabajo.")
+    }
+
+    /** Consejos de armar la fogata. Hablan de escuchar lo que el otro pide y de colaborar a su ritmo. */
+    fun buildingTips(stats: BuildStats): List<String> = buildList {
+        if (stats.decoys > 0) {
+            add("Usaste ${stats.decoys} pieza${if (stats.decoys == 1) "" else "s"} trampa. Escuchar bien antes de actuar evita errores que el otro no pidió.")
+        }
+        if (stats.wrong > 0) {
+            add("Pusiste ${stats.wrong} pieza${if (stats.wrong == 1) "" else "s"} que no eran las que Lucas pidió. Hacer lo que uno cree mejor, sin fijarse en lo que el otro necesita, no ayuda.")
+        }
+        if (stats.missed > 0) {
+            add("Lucas tuvo que poner ${stats.missed} pieza${if (stats.missed == 1) "" else "s"} solo. Ir a tu ritmo está bien, pero en equipo hay que avisar si te cuesta seguirlo.")
+        }
+        if (stats.rounds >= 3) {
+            add("Armaron ${stats.rounds} fogatas juntos, con una racha de ${stats.bestStreak}. Coordinarse con el otro funciona.")
+        }
+        if (stats.correct == 0) {
+            add("No colocaste ninguna pieza. La próxima vez toca la que Lucas te pide.")
+        }
+        if (isEmpty()) add("Construyeron juntos sin errores. Buen trabajo.")
     }
 
     /** Consejos del minijuego Hydro Hopper (Noche 3). */

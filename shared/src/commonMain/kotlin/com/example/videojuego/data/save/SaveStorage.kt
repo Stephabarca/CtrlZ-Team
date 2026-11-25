@@ -17,11 +17,42 @@ object StorageKeys {
 /** Guardado real: preferencias del sistema (Android, escritorio e iOS). */
 class SettingsSaveStorage(
     private val key: String,
-    private val settings: Settings = Settings(),
+    private val explicitSettings: Settings? = null,
 ) : SaveStorage {
-    override fun read(): String? = settings.getStringOrNull(key)
-    override fun write(value: String) = settings.putString(key, value)
-    override fun clear() = settings.remove(key)
+    private val settings: Settings? by lazy {
+        try {
+            explicitSettings ?: Settings()
+        } catch (e: Throwable) {
+            null
+        }
+    }
+    private val fallbackStorage = InMemorySaveStorage()
+
+    override fun read(): String? {
+        return try {
+            settings?.getStringOrNull(key) ?: fallbackStorage.read()
+        } catch (e: Throwable) {
+            fallbackStorage.read()
+        }
+    }
+
+    override fun write(value: String) {
+        try {
+            settings?.putString(key, value)
+        } catch (e: Throwable) {
+            // ignore
+        }
+        fallbackStorage.write(value)
+    }
+
+    override fun clear() {
+        try {
+            settings?.remove(key)
+        } catch (e: Throwable) {
+            // ignore
+        }
+        fallbackStorage.clear()
+    }
 }
 
 /** Para pruebas. */

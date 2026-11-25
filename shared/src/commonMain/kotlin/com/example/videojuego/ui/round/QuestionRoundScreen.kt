@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
@@ -37,7 +38,9 @@ import com.example.videojuego.timer.RunCountdown
 import com.example.videojuego.timer.TimerState
 import com.example.videojuego.ui.Strings
 import com.example.videojuego.ui.components.ActionButton
-import com.example.videojuego.ui.components.AffinityHearts
+import com.example.videojuego.ui.components.AffinityHeartsFx
+import com.example.videojuego.ui.components.Expression
+import com.example.videojuego.ui.components.ExpressivePortrait
 import com.example.videojuego.ui.components.AnswerOptionCard
 import com.example.videojuego.ui.components.DialogBox
 import com.example.videojuego.audio.Sfx
@@ -128,16 +131,33 @@ fun QuestionRoundScreen(
     val lucasPainter = painterResource(Res.drawable.lucas_ambar_1)
     val lilaPainter = painterResource(Res.drawable.lila_ariza_1)
 
+    // Ilustración de fondo de cada noche, con un velo oscuro para que el texto se lea bien.
+    val background = when (controller.night.order) {
+        1 -> painterResource(Res.drawable.fondo_noche_1)
+        2 -> painterResource(Res.drawable.fondo_noche_2)
+        else -> painterResource(Res.drawable.fondo_noche_3)
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            // Fondo provisional: se reemplaza por el arte real (IP-32).
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFF3B4A6B), Color(0xFF6B5B8C), Color(0xFFD9A066)),
-                ),
-            ),
+            .background(Color(0xFF3B4A6B)),
     ) {
+        Image(
+            painter = background,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0x66101830), Color(0x33101830), Color(0x99101830)),
+                    ),
+                ),
+        )
         Column(
             modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -148,11 +168,19 @@ fun QuestionRoundScreen(
                 timer = timerState,
                 affinityFraction = controller.affinityFraction(state.affinity),
                 stageName = controller.stageName(state.affinity),
+                answersCount = state.save.answers.size,
+                lastDelta = feedback?.appliedDelta,
             )
 
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 if (speaker != Speaker.NARRATOR) {
-                    SpriteDisplay(speaker, valentinaPainter, lucasPainter, lilaPainter)
+                    // Al responder, el personaje reacciona (contento, serio o triste); antes muestra la expresión de la pregunta.
+                    val expression = if (feedback != null) {
+                        Expression.forDelta(feedback.appliedDelta)
+                    } else {
+                        Expression.from(question.expression)
+                    }
+                    SpriteDisplay(speaker, valentinaPainter, lucasPainter, lilaPainter, expression)
                 }
             }
 
@@ -188,6 +216,8 @@ private fun RoundHeader(
     timer: TimerState,
     affinityFraction: Float,
     stageName: String,
+    answersCount: Int,
+    lastDelta: Int?,
 ) {
     // Cuando queda poco tiempo, el temporizador cambia a rojo (color de acción).
     val lowTime = timer.secondsLeft <= LOW_TIME_SECONDS || timer.fractionLeft <= LOW_TIME_FRACTION
@@ -214,7 +244,7 @@ private fun RoundHeader(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AffinityHearts(fraction = affinityFraction)
+            AffinityHeartsFx(fraction = affinityFraction, eventKey = answersCount, delta = lastDelta)
             HeaderText(stageName.uppercase())
         }
     }
@@ -280,6 +310,7 @@ private fun SpriteDisplay(
     valentinaPainter: Painter,
     lucasPainter: Painter,
     lilaPainter: Painter,
+    expression: Expression,
 ) {
     val painter = when (speaker) {
         Speaker.VALENTINA -> valentinaPainter
@@ -288,10 +319,12 @@ private fun SpriteDisplay(
         else -> null
     }
     if (painter != null) {
-        Image(
+        ExpressivePortrait(
             painter = painter,
-            contentDescription = speaker.displayName,
-            modifier = Modifier.size(width = 150.dp, height = 220.dp),
+            name = speaker.displayName,
+            expression = expression,
+            width = 150.dp,
+            height = 220.dp,
         )
     } else {
         Box(

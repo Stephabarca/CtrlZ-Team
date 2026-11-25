@@ -69,7 +69,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sin
 
-private enum class Phase { DECK, SUNSET, ROLL, REVEAL, END }
+private enum class Phase { DECK, SUNSET, ROLL, REVEAL, ART, END }
 
 private val SKY_TOP = listOf(Color(0xFF5BA8E6), Color(0xFFE8845A), Color(0xFF7B3F8C), Color(0xFF1B1F4B))
 private val SKY_BOTTOM = listOf(Color(0xFFBFE3F5), Color(0xFFFFC46B), Color(0xFFFF6F61), Color(0xFF5B2A6E))
@@ -123,17 +123,25 @@ fun FinaleScreen(result: FinaleResult, onFinished: () -> Unit) {
     var phaseStart by remember { mutableStateOf(0L) }
     var lineIdx by remember { mutableStateOf(0) }
     var lineStart by remember { mutableStateOf(0L) }
+    var artStart by remember { mutableStateOf(0L) }
 
-    val revealLines = remember(result) { FinaleStrings.revealLines(result.partnerId, result.closeCall, result.runnerUpId) }
+    val revealLines = remember(result) {
+        if (result.friendship) FinaleStrings.friendshipLines
+        else FinaleStrings.revealLines(result.partnerId, result.closeCall, result.runnerUpId)
+    }
+    val sunsetLines = remember(result) { FinaleStrings.sunset(result.friendship) }
+    val epilogueLines = remember(result) { FinaleStrings.epilogue(result.endingId) }
     val lines = when (phase) {
         Phase.DECK -> FinaleStrings.deck
-        Phase.SUNSET -> FinaleStrings.sunset
+        Phase.SUNSET -> sunsetLines
         Phase.REVEAL -> revealLines
+        Phase.ART -> epilogueLines
         else -> emptyList()
     }
 
     fun go(p: Phase) {
         phase = p; phaseStart = t; lineIdx = 0; lineStart = t
+        if (p == Phase.ART) artStart = t
     }
 
     fun visibleChars(): Int = lines.getOrNull(lineIdx)?.let {
@@ -151,8 +159,10 @@ fun FinaleScreen(result: FinaleResult, onFinished: () -> Unit) {
         } else {
             when (phase) {
                 Phase.DECK -> go(Phase.SUNSET)
-                Phase.SUNSET -> go(Phase.ROLL)
-                Phase.REVEAL -> go(Phase.END)
+                // Con el final de amistad no hay ruleta de corazones: se pasa directo a la revelación.
+                Phase.SUNSET -> go(if (result.friendship) Phase.REVEAL else Phase.ROLL)
+                Phase.REVEAL -> go(Phase.ART)
+                Phase.ART -> go(Phase.END)
                 else -> Unit
             }
         }
@@ -173,7 +183,7 @@ fun FinaleScreen(result: FinaleResult, onFinished: () -> Unit) {
         Phase.SUNSET -> 0.55f
         Phase.ROLL -> 0.78f
         Phase.REVEAL -> 0.9f
-        Phase.END -> 0.97f
+        Phase.ART, Phase.END -> 0.97f
     }
     val sunP by animateFloatAsState(sunTarget, tween(7000, easing = LinearEasing))
     val barsP by animateFloatAsState(if (phase == Phase.DECK) 0f else 1f, tween(1200))
@@ -199,6 +209,7 @@ fun FinaleScreen(result: FinaleResult, onFinished: () -> Unit) {
                 t = t,
                 phase = phase,
                 phaseT = t - phaseStart,
+                artT = t - artStart,
                 sunP = sunP,
                 barsP = barsP,
                 result = result,
@@ -233,6 +244,23 @@ fun FinaleScreen(result: FinaleResult, onFinished: () -> Unit) {
                     fontSize = 12.sp,
                 )
             }
+        }
+
+        // Título de la postal.
+        if (phase == Phase.ART) {
+            val a = (((t - phaseStart) - 900L) / 700f).coerceIn(0f, 1f)
+            Text(
+                FinaleStrings.endingTitle(result.endingId),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 28.dp)
+                    .background(Color(0x99000000).copy(alpha = 0.6f * a), RectangleShape)
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                color = Color(0xFFFFF4D6).copy(alpha = a),
+                fontFamily = PixelFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+            )
         }
 
         // Frases de suspenso mientras gira la ruleta.
@@ -328,7 +356,7 @@ fun FinaleScreen(result: FinaleResult, onFinished: () -> Unit) {
                 NPC_IDS.forEach { id ->
                     val score = result.scores[id] ?: 0
                     val frac = (score.toFloat() / top).coerceIn(0.08f, 1f)
-                    val winner = id == result.partnerId
+                    val winner = id == result.partnerId && !result.friendship
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
                             FinaleStrings.names.getValue(id) + if (winner) " ♥" else "",
@@ -382,6 +410,7 @@ private fun DrawScope.drawFinale(
     t: Long,
     phase: Phase,
     phaseT: Long,
+    artT: Long,
     sunP: Float,
     barsP: Float,
     result: FinaleResult,
@@ -393,6 +422,17 @@ private fun DrawScope.drawFinale(
     val horizon = h * 0.46f
     val deckTop = h * 0.62f
     val tf = t.toFloat()
+
+    // Ilustración final de la pareja elegida (reemplaza la escena de cubierta).
+    // La postal se queda de fondo también en la pantalla final.
+    if (phase == Phase.ART || phase == Phase.END) {
+        val slot = NPC_IDS.indexOf(result.partnerId).coerceAtLeast(0)
+        drawEndingArt(
+            result.endingId, t, artT, protaPainter,
+            if (result.friendship) npcPainters else listOf(npcPainters[slot]),
+        )
+        return
+    }
 
     // Cielo.
     drawRect(
@@ -512,6 +552,7 @@ private fun DrawScope.drawFinale(
     val tint = ColorFilter.tint(Color(0xFFFF7A3D).copy(alpha = dusk), BlendMode.SrcAtop)
     val winnerSlot = NPC_IDS.indexOf(result.partnerId).coerceAtLeast(0)
     val inReveal = phase == Phase.REVEAL || phase == Phase.END
+    val romance = !result.friendship
 
     fun lift(i: Int, extra: Float = 0f): Float =
         if (phase == Phase.DECK) abs(sin(tf / 260f + i * 1.3f)) * h * 0.035f
@@ -531,8 +572,8 @@ private fun DrawScope.drawFinale(
 
     for (i in NPC_IDS.indices) {
         val baseX = w * NPC_X[i]
-        val cx = if (inReveal && i == winnerSlot) mix(baseX, w * WINNER_TARGET_X, walk) else baseX
-        val extra = if (inReveal && i == winnerSlot) abs(sin(tf / 420f)) * h * 0.012f else 0f
+        val cx = if (inReveal && romance && i == winnerSlot) mix(baseX, w * WINNER_TARGET_X, walk) else baseX
+        val extra = if (inReveal && (!romance || i == winnerSlot)) abs(sin(tf / 420f + i)) * h * 0.012f else 0f
         sprite(npcPainters[i], cx, lift(i + 1, extra))
     }
     sprite(protaPainter, w * PROTA_X, lift(0))
@@ -561,7 +602,7 @@ private fun DrawScope.drawFinale(
     if (inReveal) {
         val flash = (1f - phaseT / 900f).coerceIn(0f, 1f) * 0.6f
         if (flash > 0f) drawRect(Color(0xFFFFE9B8).copy(alpha = flash), Offset.Zero, size)
-        val midX = w * (WINNER_TARGET_X + PROTA_X) / 2f
+        val midX = if (romance) w * (WINNER_TARGET_X + PROTA_X) / 2f else w * 0.5f
         for (i in 0 until 16) {
             val life = ((tf / 1000f) * 0.35f + i / 16f) % 1f
             val hx = midX + sin(i * 2.1f + life * 6f) * w * 0.08f + (i % 5 - 2) * w * 0.012f

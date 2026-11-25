@@ -2,6 +2,7 @@ package com.example.videojuego.data
 
 import com.example.videojuego.data.content.ContentRepository
 import com.example.videojuego.data.save.SaveRepository
+import com.example.videojuego.finale.EndingsRepository
 import com.example.videojuego.data.save.SettingsRepository
 import com.example.videojuego.data.save.SettingsSaveStorage
 import com.example.videojuego.data.save.StorageKeys
@@ -11,5 +12,7 @@ import videojuego.shared.generated.resources.Res
 object GameServices {
     val content: ContentRepository = ContentRepository { path -> Res.readBytes(path) }
     val saves: SaveRepository by lazy { SaveRepository(SettingsSaveStorage(StorageKeys.SAVE)) }
+    /** Finales vistos. Va aparte de la partida: "Nueva partida" no los borra. */
+    val endings: EndingsRepository by lazy { EndingsRepository(SettingsSaveStorage(StorageKeys.ENDINGS)) }
     val settings: SettingsRepository by lazy { SettingsRepository(SettingsSaveStorage(StorageKeys.SETTINGS)) }
 }

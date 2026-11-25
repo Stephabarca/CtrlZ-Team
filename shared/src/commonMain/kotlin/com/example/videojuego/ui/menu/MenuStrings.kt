@@ -8,6 +8,7 @@ object MenuStrings {
     const val NewGame = "NUEVA PARTIDA"
     const val Settings = "AJUSTES"
     const val Credits = "CRÉDITOS"
+    const val Endings = "FINALES"
     const val Loading = "CARGANDO..."
     const val CorruptTitle = "NO SE PUDO LEER TU PARTIDA"
     const val CorruptBody = "El archivo guardado está dañado. Puedes empezar una partida nueva."

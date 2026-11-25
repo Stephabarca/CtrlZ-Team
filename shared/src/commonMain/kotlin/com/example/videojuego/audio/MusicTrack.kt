@@ -31,7 +31,7 @@ object MusicRules {
      */
     fun trackFor(screen: String, settingsReturn: String = "menu", phase: DayPhase = DayPhase.DAY): MusicTrack? =
         when (screen) {
-            "menu", "credits" -> MusicTrack.MENU
+            "menu", "credits", "endings" -> MusicTrack.MENU
             "world" -> if (phase == DayPhase.NIGHT) MusicTrack.BEACH_NIGHT else MusicTrack.BEACH_DAY
             "round" -> MusicTrack.ROUND_CLOCK
             "finale" -> MusicTrack.SEA

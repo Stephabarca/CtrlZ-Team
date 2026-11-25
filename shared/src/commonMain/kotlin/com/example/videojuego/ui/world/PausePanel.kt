@@ -33,6 +33,7 @@ fun PausePanel(
     onSettings: (() -> Unit)?,
     onBackToMenu: () -> Unit,
     modifier: Modifier = Modifier,
+    onDiary: (() -> Unit)? = null,
 ) {
     var confirming by remember { mutableStateOf(false) }
     Column(
@@ -49,6 +50,7 @@ fun PausePanel(
             RopedLogs(
                 buildList<@Composable () -> Unit> {
                     add { ActionButton(text = WorldStrings.Resume, onClick = onResume, minWidth = 260.dp) }
+                    if (onDiary != null) add { ActionButton(text = DiaryStrings.Open, onClick = onDiary, minWidth = 260.dp) }
                     if (onSettings != null) add { ActionButton(text = WorldStrings.Settings, onClick = onSettings, minWidth = 260.dp) }
                     add { ActionButton(text = WorldStrings.BackToMenu, onClick = { confirming = true }, minWidth = 260.dp) }
                 },

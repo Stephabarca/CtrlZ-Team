@@ -93,9 +93,16 @@ fun QuestionRoundScreen(
     LaunchedEffect(answered) {
         if (answered) timer.pause()
     }
-    // Sonido según la respuesta: si sube la afinidad suena el positivo; si baja, el negativo.
-    LaunchedEffect(feedback) {
-        val delta = feedback?.appliedDelta ?: return@LaunchedEffect
+    // Sonido según la respuesta (en todas las noches): positivo si la respuesta sube la afinidad, negativo si la
+    // baja o si se acabó el tiempo. Se usa el efecto de la respuesta elegida y no solo el aplicado, para que suene
+    // aunque la afinidad ya esté en el tope (0 o 100). Suena una vez por pregunta respondida.
+    LaunchedEffect(question.id, answered) {
+        val f = feedback ?: return@LaunchedEffect
+        val delta = if (f.timedOut) {
+            -1
+        } else {
+            question.answers.firstOrNull { it.id == f.chosenAnswerId }?.affinityDelta ?: f.appliedDelta
+        }
         when {
             delta > 0 -> Sfx.play(SoundEffect.POSITIVE)
             delta < 0 -> Sfx.play(SoundEffect.NEGATIVE)

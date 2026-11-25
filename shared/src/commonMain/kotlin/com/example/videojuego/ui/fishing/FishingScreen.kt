@@ -38,6 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.videojuego.audio.Sfx
+import com.example.videojuego.audio.SoundEffect
 import com.example.videojuego.minigame.fishing.CatchResult
 import com.example.videojuego.minigame.fishing.FishingGame
 import com.example.videojuego.minigame.fishing.FishingPhase
@@ -93,6 +95,18 @@ fun FishingScreen(
             val previous = last
             if (previous != null) game.update(frameDelta(previous, now, MAX_FRAME_MS))
             last = now
+        }
+    }
+    // Sonidos: la caña recoge la línea cuando el pez pica; al resolverse el intento suena la captura
+    // o, si el pez se escapó o se jaló antes de tiempo, el de fallo.
+    LaunchedEffect(state.phase == FishingPhase.BITING) {
+        if (state.phase == FishingPhase.BITING) Sfx.play(SoundEffect.REEL)
+    }
+    LaunchedEffect(state.results.size) {
+        when (state.results.lastOrNull()) {
+            CatchResult.PERFECT, CatchResult.GOOD, CatchResult.WEAK -> Sfx.play(SoundEffect.CATCH)
+            CatchResult.LOST, CatchResult.EARLY -> Sfx.play(SoundEffect.FAIL)
+            null -> Unit
         }
     }
     LaunchedEffect(state.phase == FishingPhase.FINISHED) {

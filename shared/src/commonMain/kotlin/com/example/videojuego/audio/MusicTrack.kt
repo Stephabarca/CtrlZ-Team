@@ -14,6 +14,9 @@ enum class MusicTrack(val path: String) {
 
     /** Tic tac del reloj durante la ronda de preguntas. */
     ROUND_CLOCK("files/sounds/round_clock.wav"),
+
+    /** Olas del mar abierto durante Hydro Hopper (Noche 3). Lo controla la pantalla del minijuego. */
+    SEA("files/sounds/sea_sound.wav"),
 }
 
 /** Qué suena de fondo en cada pantalla de [com.example.videojuego.App]. null = silencio. */

@@ -12,6 +12,24 @@ enum class SoundEffect(val path: String) {
 
     /** La respuesta bajó la afinidad. */
     NEGATIVE("files/sounds/negative_sound.wav"),
+
+    /** Pesca (Noche 1): la caña recoge la línea cuando el pez pica. */
+    REEL("files/sounds/reel_sound.wav"),
+
+    /** Pesca (Noche 1): se atrapó el pez. */
+    CATCH("files/sounds/catch_sound.wav"),
+
+    /**
+     * Minijuegos: se perdió el pez por no jalar a tiempo o por jalar antes (Noche 1), se falló el orden de los
+     * objetos (Noche 2) o la balsa chocó con un obstáculo (Noche 3).
+     */
+    FAIL("files/sounds/fail_sound.wav"),
+
+    /** Fogata (Noche 2): se acertó la combinación completa. */
+    SUCCESS("files/sounds/success_sound.wav"),
+
+    /** Hydro Hopper (Noche 3): la balsa salta. */
+    JUMP("files/sounds/jump_sound.wav"),
 }
 
 /** Reproduce un sonido corto encima de lo que suene. Cada plataforma tiene su implementación. */

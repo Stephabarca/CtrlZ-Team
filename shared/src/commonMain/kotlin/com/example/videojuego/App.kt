@@ -32,6 +32,7 @@ import com.example.videojuego.audio.MusicRules
 import com.example.videojuego.audio.Sfx
 import androidx.compose.runtime.collectAsState
 import com.example.videojuego.ui.settings.SettingsScreen
+import com.example.videojuego.ui.splash.SplashScreen
 import com.example.videojuego.ui.summary.NightSummaryScreen
 import com.example.videojuego.ui.theme.IslaPerdidaTheme
 import com.example.videojuego.ui.world.WorldScreen
@@ -46,7 +47,8 @@ private fun parseColor(hex: String): Color =
 fun App() {
     IslaPerdidaTheme {
         val world = remember { IslaWorld.newController() }
-        var screen by remember { mutableStateOf("menu") }
+        // Empieza con la animación de CONTROL Z; al terminar (o al saltarla) pasa al menú.
+        var screen by remember { mutableStateOf("splash") }
         var nightId by remember { mutableStateOf("night1") }
 
         // Ajustes (velocidad del texto y volúmenes) y a qué pantalla volver al cerrarlos.
@@ -92,6 +94,8 @@ fun App() {
         BackgroundMusic(MusicRules.trackFor(screen, settingsReturn, worldState.phase), settings.musicVolume)
 
         when (screen) {
+            "splash" -> SplashScreen(volume = settings.musicVolume, onFinished = { screen = "menu" })
+
             "hydrohopper_demo" -> HydroHopperDemo(onFinished = { screen = "menu" })
 
             "menu" -> MainMenuScreen(
@@ -214,6 +218,7 @@ fun App() {
                     val minigame = c.minigame(night.minigameId)
                     HydroHopperScreen(
                         durationSec = minigame.durationSec,
+                        musicVolume = settings.musicVolume,
                         onFinished = { stats ->
                             val updated = ProgressRules.recordMinigame(c, current, minigame, stats.score)
                             save = updated

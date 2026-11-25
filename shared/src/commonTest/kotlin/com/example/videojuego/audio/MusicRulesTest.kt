@@ -31,7 +31,8 @@ class MusicRulesTest {
 
     @Test
     fun otherScreens_areSilent() {
-        for (s in listOf("intro", "fishing", "fogata", "summary")) {
+        // "splash": la animación de inicio trae su propio sonido; la música del menú empieza al terminar.
+        for (s in listOf("splash", "intro", "fishing", "fogata", "summary")) {
             assertNull(MusicRules.trackFor(s), s)
         }
     }

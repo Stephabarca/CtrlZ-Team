@@ -12,6 +12,7 @@ import com.example.videojuego.data.GameServices
 import com.example.videojuego.data.content.GameContent
 import com.example.videojuego.data.rules.ProgressRules
 import com.example.videojuego.data.rules.WorldRewards
+import com.example.videojuego.data.save.GamePhase
 import com.example.videojuego.data.save.GameSettings
 import com.example.videojuego.data.save.LoadResult
 import com.example.videojuego.data.save.WorldSave
@@ -57,7 +58,12 @@ import com.example.videojuego.ui.intro.IntroScreen
 import com.example.videojuego.ui.menu.MainMenuScreen
 import com.example.videojuego.ui.minigame.HydroHopperScreen
 import com.example.videojuego.ui.round.QuestionRoundHost
+import com.example.videojuego.audio.BackgroundMusic
+import com.example.videojuego.audio.MusicRules
+import com.example.videojuego.audio.Sfx
+import androidx.compose.runtime.collectAsState
 import com.example.videojuego.ui.settings.SettingsScreen
+import com.example.videojuego.ui.splash.SplashScreen
 import com.example.videojuego.ui.summary.NightSummaryScreen
 import com.example.videojuego.ui.theme.IslaPerdidaTheme
 import com.example.videojuego.ui.world.WorldScreen
@@ -74,7 +80,8 @@ private fun parseColor(hex: String): Color =
 fun App() {
     IslaPerdidaTheme {
         val world = remember { IslaWorld.newController() }
-        var screen by remember { mutableStateOf("menu") }
+        // Empieza con la animación de CONTROL Z; al terminar (o al saltarla) pasa al menú.
+        var screen by remember { mutableStateOf("splash") }
         var nightId by remember { mutableStateOf("night1") }
 
         // Ajustes (velocidad del texto y volúmenes) y a qué pantalla volver al cerrarlos.
@@ -109,6 +116,9 @@ fun App() {
             content = GameServices.content.load()
             loadResult = GameServices.saves.load()
         }
+        // Efectos de sonido: se leen una vez y usan el volumen de efectos de Ajustes.
+        LaunchedEffect(Unit) { Sfx.preload() }
+        Sfx.volume = settings.sfxVolume
 
         fun showSummary(
             c: GameContent,
@@ -176,10 +186,20 @@ fun App() {
             true
         }
 
+        // Fondo: música del menú, playa de día o de noche (mapa) y reloj (preguntas).
+        // Ajustes sigue con lo de la pantalla de origen. Usa el volumen de música de Ajustes.
+        val worldState by world.state.collectAsState()
+
         // Cada cambio de pantalla se hace con un fundido a negro.
         Box(demoKeys) {
         FadeHost(screen) { shownScreen ->
+        // La música cambia junto con la imagen, cuando la pantalla está a oscuras.
+        // Las canciones siguen el volumen de Música; los ambientes (playa, reloj, mar), el de Efectos.
+        val track = MusicRules.trackFor(shownScreen, settingsReturn, worldState.phase)
+        BackgroundMusic(track, MusicRules.volumeFor(track, settings.musicVolume, settings.sfxVolume))
         when (shownScreen) {
+            "splash" -> SplashScreen(volume = settings.musicVolume, onFinished = { screen = "menu" })
+
             "hydrohopper_demo" -> HydroHopperDemo(onFinished = { screen = "menu" })
 
             "menu" -> MainMenuScreen(
@@ -367,6 +387,7 @@ fun App() {
                     val minigame = c.minigame(night.minigameId)
                     HydroHopperScreen(
                         durationSec = minigame.durationSec,
+                        ambientVolume = settings.sfxVolume,
                         onFinished = { stats ->
                             val updated = ProgressRules.recordMinigame(c, current, minigame, stats.score)
                             save = updated
@@ -392,6 +413,17 @@ fun App() {
                         tieBreak = tie,
                         startAffinity = start,
                     )
+                }
+                // La historia terminó: se guarda la partida como terminada para que el menú ya no ofrezca
+                // CONTINUAR (si no, volvería al mapa después de la noche 3). Un final forzado con las teclas
+                // de demo no toca la partida.
+                LaunchedEffect(Unit) {
+                    if (forcedEnding == null && c != null && current != null && current.phase != GamePhase.ENDING) {
+                        val done = ProgressRules.finish(c, current)
+                        save = done
+                        GameServices.saves.save(done)
+                        loadResult = LoadResult.Loaded(done)
+                    }
                 }
                 FinaleScreen(
                     result = result,

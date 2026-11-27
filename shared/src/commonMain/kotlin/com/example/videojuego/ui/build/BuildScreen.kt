@@ -45,6 +45,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.videojuego.audio.Sfx
+import com.example.videojuego.audio.SoundEffect
 import com.example.videojuego.minigame.build.BuildGame
 import com.example.videojuego.minigame.build.BuildPhase
 import com.example.videojuego.minigame.build.BuildState
@@ -123,6 +125,24 @@ fun BuildScreen(
             last = now
         }
     }
+    // Sonidos: cada contador solo sube, así que suenan una vez por pieza aunque se repita el mismo resultado.
+    // Pieza correcta: golpe de madera.
+    LaunchedEffect(state.correct) {
+        if (state.correct > 0) Sfx.play(SoundEffect.CLICK)
+    }
+    // Pieza equivocada o trampa: error.
+    LaunchedEffect(state.wrong + state.decoys) {
+        if (state.wrong + state.decoys > 0) Sfx.play(SoundEffect.FAIL)
+    }
+    // Se acabó el tiempo de una pieza y Lucas la puso solo.
+    LaunchedEffect(state.missed) {
+        if (state.missed > 0) Sfx.play(SoundEffect.NEGATIVE)
+    }
+    // Fogata completa (ronda cerrada por el jugador).
+    LaunchedEffect(state.roundsCompleted) {
+        if (state.roundsCompleted > 0) Sfx.play(SoundEffect.SUCCESS)
+    }
+
     LaunchedEffect(state.phase == BuildPhase.FINISHED) {
         if (state.phase == BuildPhase.FINISHED) {
             delay(1400)

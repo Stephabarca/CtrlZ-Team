@@ -53,6 +53,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.videojuego.audio.Sfx
+import com.example.videojuego.audio.SoundEffect
 import com.example.videojuego.finale.FinaleResult
 import com.example.videojuego.finale.FinaleRoll
 import com.example.videojuego.finale.FinaleRules
@@ -168,7 +170,10 @@ fun FinaleScreen(result: FinaleResult, onFinished: () -> Unit) {
 
     LaunchedEffect(phase) {
         if (phase == Phase.ROLL) {
-            delay(FinaleRoll.totalMs)
+            // El corazón se detiene en la pareja: suena el éxito y, tras una pausa, empieza la revelación.
+            delay(FinaleRoll.spinMs)
+            Sfx.play(SoundEffect.SUCCESS)
+            delay(FinaleRoll.HOLD_MS)
             go(Phase.REVEAL)
         }
     }
@@ -380,7 +385,12 @@ fun FinaleScreen(result: FinaleResult, onFinished: () -> Unit) {
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                        ) { if (a >= 1f) onFinished() }
+                        ) {
+                            if (a >= 1f) {
+                                Sfx.play(SoundEffect.CLICK)
+                                onFinished()
+                            }
+                        }
                         .padding(horizontal = 18.dp, vertical = 8.dp),
                     color = IslaColors.Ink.copy(alpha = a),
                     fontFamily = PixelFontFamily,

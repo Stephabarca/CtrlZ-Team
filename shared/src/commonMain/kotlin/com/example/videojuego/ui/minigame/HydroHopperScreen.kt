@@ -57,6 +57,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.videojuego.audio.BackgroundMusic
+import com.example.videojuego.audio.MusicTrack
+import com.example.videojuego.audio.Sfx
+import com.example.videojuego.audio.SoundEffect
 import com.example.videojuego.minigame.hydrohopper.HydroHopperGame
 import com.example.videojuego.minigame.hydrohopper.HydroHopperState
 import com.example.videojuego.minigame.hydrohopper.HydroHopperStats
@@ -80,9 +84,27 @@ fun HydroHopperScreen(
     onFinished: (HydroHopperStats) -> Unit,
     modifier: Modifier = Modifier,
     durationSec: Int = 30,
+    /** Volumen del ambiente del mar: el de Efectos de Ajustes (no es una canción). */
+    ambientVolume: Float = 0.8f,
 ) {
     val game = remember(durationSec) { HydroHopperGame(durationMs = durationSec * 1000L) }
     val state by game.state.collectAsState()
+
+    // Sonido del mar en bucle desde las instrucciones hasta que se acaba el minijuego (llegada al barco o
+    // naufragio). Si se reintenta, vuelve a sonar.
+    val seaPlaying = state.phase == HydroPhase.READY || state.phase == HydroPhase.PLAYING ||
+        state.phase == HydroPhase.SHIP_RESCUE
+    BackgroundMusic(if (seaPlaying) MusicTrack.SEA else null, ambientVolume)
+
+    // Cada vez que la balsa empieza un salto.
+    LaunchedEffect(state.isJumping) {
+        if (state.isJumping) Sfx.play(SoundEffect.JUMP)
+    }
+
+    // Cada choque con un obstáculo (también el último, que hunde la balsa). Al reintentar vuelve a 0 y no suena.
+    LaunchedEffect(state.hitCount) {
+        if (state.hitCount > 0) Sfx.play(SoundEffect.FAIL)
+    }
 
     val protaPainter = painterResource(Res.drawable.prota_2)
     val valentinaPainter = painterResource(Res.drawable.valentina_oliva_4)

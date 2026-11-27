@@ -24,33 +24,6 @@ import androidx.compose.ui.unit.sp
 import com.example.videojuego.ui.theme.IslaColors
 import com.example.videojuego.ui.theme.PixelFontFamily
 
-/** Botón de acción con bordes cuadrados (estilo pixel art). */
-@Composable
-fun ActionButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    container: Color = IslaColors.Primary,
-    content: Color = IslaColors.OnDark,
-) {
-    Box(
-        modifier = modifier
-            .border(3.dp, IslaColors.Ink, RectangleShape)
-            .background(container, RectangleShape)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            color = content,
-            fontFamily = PixelFontFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-        )
-    }
-}
-
 /**
  * Caja de diálogo: pestaña con el nombre (color del personaje), texto y un espacio para el botón.
  * Si [speakerName] está vacío (narrador) no se dibuja la pestaña.

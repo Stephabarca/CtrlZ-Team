@@ -35,6 +35,11 @@ class MusicRulesTest {
     }
 
     @Test
+    fun storm_playsTheStorm() {
+        assertEquals(MusicTrack.STORM, MusicRules.trackFor("storm"))
+    }
+
+    @Test
     fun finale_playsTheSea() {
         assertEquals(MusicTrack.SEA, MusicRules.trackFor("finale"))
     }
@@ -57,5 +62,21 @@ class MusicRulesTest {
     @Test
     fun everyEffectHasAFile() {
         SoundEffect.entries.forEach { assertEquals(true, it.path.startsWith("files/sounds/"), it.name) }
+    }
+
+    @Test
+    fun onlyTheTwoSongs_areSongs() {
+        assertEquals(setOf(MusicTrack.MENU, MusicTrack.CREDITS), MusicTrack.entries.filter { it.isSong }.toSet())
+        // Las canciones están en music/ y los ambientes en sounds/.
+        MusicTrack.entries.forEach { assertEquals(it.isSong, it.path.startsWith("files/music/"), it.name) }
+    }
+
+    @Test
+    fun songsFollowMusicVolume_ambientsFollowEffectsVolume() {
+        assertEquals(0.3f, MusicRules.volumeFor(MusicTrack.MENU, musicVolume = 0.3f, sfxVolume = 0.9f))
+        assertEquals(0.3f, MusicRules.volumeFor(MusicTrack.CREDITS, musicVolume = 0.3f, sfxVolume = 0.9f))
+        for (ambient in listOf(MusicTrack.BEACH_DAY, MusicTrack.BEACH_NIGHT, MusicTrack.ROUND_CLOCK, MusicTrack.SEA, MusicTrack.STORM)) {
+            assertEquals(0.9f, MusicRules.volumeFor(ambient, musicVolume = 0.3f, sfxVolume = 0.9f), ambient.name)
+        }
     }
 }

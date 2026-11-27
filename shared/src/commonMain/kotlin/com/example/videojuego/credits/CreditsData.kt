@@ -10,10 +10,61 @@ object CreditsData {
     /** Última línea: se queda en el centro antes de volver al menú. */
     const val THE_END = "GRACIAS POR JUGAR"
 
-    /** TODO: reemplazar por los nombres reales del equipo. */
-    val team: List<String> = listOf(
-        "Equipo CtrlZ",
+    /** Un cargo y quién lo hizo (una o varias personas). */
+    data class Role(val title: String, val names: List<String>) {
+        constructor(title: String, vararg names: String) : this(title, names.toList())
+    }
+
+    /** Un área del equipo (DESARROLLO, ARTE...) con sus cargos. */
+    data class Department(val title: String, val roles: List<Role>)
+
+    /** Sección del equipo: sale justo antes de la lista de cargos. */
+    val teamSection: Section = Section("EQUIPO", listOf("Equipo CtrlZ"))
+
+    /** Lista de cargos de Control Z, en el orden en que suben en los créditos. */
+    val departments: List<Department> = listOf(
+        Department(
+            "DESARROLLO",
+            listOf(
+                Role("Directora de Desarrollo", "Steph"),
+                Role("Programadora de Mecánicas", "Steph"),
+                Role("Desarrolladores", "Luis", "Steph", "Cris"),
+                Role("Especialista en Lógica de Juego", "Cris"),
+            ),
+        ),
+        Department(
+            "ARTE",
+            listOf(
+                Role("Director de Arte", "Cris"),
+                Role("Artista de Pixel Art", "Cris"),
+                Role("Artista de Escenarios", "Steph"),
+                Role("Diseñadora de Elementos Gráficos", "Steph"),
+            ),
+        ),
+        Department(
+            "MÚSICA",
+            listOf(
+                Role("Director Musical", "Luis"),
+                Role("Compositor de Banda Sonora", "Luis"),
+                Role("Editor de Audio", "Luis Vega Araya"),
+            ),
+        ),
+        Department(
+            "MENCIONES ESPECIALES",
+            listOf(
+                Role("Supervisor de Ideas de Último Minuto", "Luis"),
+                Role("Responsable de la Magia Técnica", "Steph"),
+                Role("Supervisor de Caos Controlado", "Cris"),
+            ),
+        ),
+        Department(
+            "MENTORES",
+            listOf(Role("Mentores", "Kevin", "Beatriz")),
+        ),
     )
+
+    /** Todas las personas del equipo (sin repetir), sacadas de [departments]. */
+    val team: List<String> get() = departments.flatMap { d -> d.roles.flatMap { it.names } }.distinct()
 
     /** Personajes (id del sprite y nombre). Salen con su retrato en el reparto. */
     data class CastMember(val id: String, val name: String)
@@ -26,8 +77,8 @@ object CreditsData {
 
     data class Section(val title: String, val lines: List<String>)
 
+    /** Lo que sube después de los cargos. */
     val sections: List<Section> = listOf(
-        Section("EQUIPO", team),
         Section(
             "INSPIRACIÓN",
             listOf(
@@ -35,8 +86,8 @@ object CreditsData {
             ),
         ),
         Section(
-            "MÚSICA",
-            listOf("«Donde termina el mar»", "Canción de los créditos"),
+            "CANCIÓN DE LOS CRÉDITOS",
+            listOf("«Donde termina el mar»"),
         ),
         Section(
             "TECNOLOGÍA",

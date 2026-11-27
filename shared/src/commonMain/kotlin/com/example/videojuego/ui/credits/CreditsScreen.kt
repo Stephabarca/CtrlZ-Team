@@ -63,6 +63,9 @@ private val TITLE_COLOR = Color(0xFFFFE9B8)
 private val ROLE_COLOR = Color(0xFFFFC46B)
 private val TEXT_COLOR = Color(0xFFF4F1FF)
 
+/** Nombre del cargo (más tenue que el nombre de la persona). */
+private val ROLE_TITLE_COLOR = Color(0xFFB9B3D9)
+
 private fun portrait(id: String): DrawableResource? = when (id) {
     "valentina" -> Res.drawable.valentina_oliva_1
     "lucas" -> Res.drawable.lucas_ambar_1
@@ -138,7 +141,7 @@ fun CreditsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, endingTitle
                 color = TITLE_COLOR,
                 fontFamily = PixelFontFamily,
                 fontWeight = FontWeight.Bold,
-                fontSize = 30.sp,
+                fontSize = 38.sp,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(10.dp))
@@ -150,7 +153,7 @@ fun CreditsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, endingTitle
                     color = ROLE_COLOR,
                     fontFamily = PixelFontFamily,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = 23.sp,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -164,7 +167,7 @@ fun CreditsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, endingTitle
                             Image(
                                 painterResource(it),
                                 contentDescription = member.name,
-                                modifier = Modifier.size(84.dp),
+                                modifier = Modifier.size(104.dp),
                                 contentScale = ContentScale.Fit,
                             )
                         }
@@ -174,6 +177,18 @@ fun CreditsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, endingTitle
                 }
             }
             Spacer(Modifier.height(56.dp))
+
+            // El equipo (Equipo CtrlZ) y luego sus cargos.
+            RoleTitle(CreditsData.teamSection.title)
+            CreditsData.teamSection.lines.forEach { CreditLine(it) }
+            Spacer(Modifier.height(48.dp))
+
+            // Cargos del equipo: el área y, debajo, cada cargo con su nombre resaltado.
+            CreditsData.departments.forEach { department ->
+                RoleTitle(department.title)
+                department.roles.forEach { role -> RoleCredit(role) }
+                Spacer(Modifier.height(48.dp))
+            }
 
             CreditsData.sections.forEach { section ->
                 RoleTitle(section.title)
@@ -187,7 +202,7 @@ fun CreditsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, endingTitle
                 color = TITLE_COLOR,
                 fontFamily = PixelFontFamily,
                 fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
+                fontSize = 30.sp,
                 textAlign = TextAlign.Center,
             )
         }
@@ -210,20 +225,47 @@ private fun RoleTitle(text: String) {
         color = ROLE_COLOR,
         fontFamily = PixelFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 13.sp,
+        fontSize = 18.sp,
         textAlign = TextAlign.Center,
     )
+}
+
+/** Un cargo en pequeño y, debajo, quién lo hizo ("Luis · Steph · Cris" si son varios). */
+@Composable
+private fun RoleCredit(role: CreditsData.Role) {
+    Column(
+        Modifier.widthIn(max = 640.dp).padding(vertical = 7.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            role.title,
+            color = ROLE_TITLE_COLOR,
+            fontFamily = PixelFontFamily,
+            fontSize = 15.sp,
+            lineHeight = 20.sp,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            role.names.joinToString(" · "),
+            color = TEXT_COLOR,
+            fontFamily = PixelFontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 21.sp,
+            lineHeight = 28.sp,
+            textAlign = TextAlign.Center,
+        )
+    }
 }
 
 @Composable
 private fun CreditLine(text: String) {
     Text(
         text,
-        modifier = Modifier.widthIn(max = 520.dp).padding(vertical = 3.dp),
+        modifier = Modifier.widthIn(max = 640.dp).padding(vertical = 3.dp),
         color = TEXT_COLOR,
         fontFamily = PixelFontFamily,
-        fontSize = 13.sp,
-        lineHeight = 19.sp,
+        fontSize = 18.sp,
+        lineHeight = 25.sp,
         textAlign = TextAlign.Center,
     )
 }

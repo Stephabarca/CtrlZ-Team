@@ -194,7 +194,9 @@ fun App() {
         Box(demoKeys) {
         FadeHost(screen) { shownScreen ->
         // La música cambia junto con la imagen, cuando la pantalla está a oscuras.
-        BackgroundMusic(MusicRules.trackFor(shownScreen, settingsReturn, worldState.phase), settings.musicVolume)
+        // Las canciones siguen el volumen de Música; los ambientes (playa, reloj, mar), el de Efectos.
+        val track = MusicRules.trackFor(shownScreen, settingsReturn, worldState.phase)
+        BackgroundMusic(track, MusicRules.volumeFor(track, settings.musicVolume, settings.sfxVolume))
         when (shownScreen) {
             "splash" -> SplashScreen(volume = settings.musicVolume, onFinished = { screen = "menu" })
 
@@ -385,7 +387,7 @@ fun App() {
                     val minigame = c.minigame(night.minigameId)
                     HydroHopperScreen(
                         durationSec = minigame.durationSec,
-                        musicVolume = settings.musicVolume,
+                        ambientVolume = settings.sfxVolume,
                         onFinished = { stats ->
                             val updated = ProgressRules.recordMinigame(c, current, minigame, stats.score)
                             save = updated

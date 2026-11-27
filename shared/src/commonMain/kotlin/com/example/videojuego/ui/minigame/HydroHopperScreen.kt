@@ -84,7 +84,8 @@ fun HydroHopperScreen(
     onFinished: (HydroHopperStats) -> Unit,
     modifier: Modifier = Modifier,
     durationSec: Int = 30,
-    musicVolume: Float = 0.8f,
+    /** Volumen del ambiente del mar: el de Efectos de Ajustes (no es una canción). */
+    ambientVolume: Float = 0.8f,
 ) {
     val game = remember(durationSec) { HydroHopperGame(durationMs = durationSec * 1000L) }
     val state by game.state.collectAsState()
@@ -93,7 +94,7 @@ fun HydroHopperScreen(
     // naufragio). Si se reintenta, vuelve a sonar.
     val seaPlaying = state.phase == HydroPhase.READY || state.phase == HydroPhase.PLAYING ||
         state.phase == HydroPhase.SHIP_RESCUE
-    BackgroundMusic(if (seaPlaying) MusicTrack.SEA else null, musicVolume)
+    BackgroundMusic(if (seaPlaying) MusicTrack.SEA else null, ambientVolume)
 
     // Cada vez que la balsa empieza un salto.
     LaunchedEffect(state.isJumping) {
